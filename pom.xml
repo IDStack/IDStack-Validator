@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.idstack</groupId>
-    <artifactId>web-service</artifactId>
+    <artifactId>validator-webservice</artifactId>
     <packaging>pom</packaging>
     <version>${idstack.version}</version>
 
     <modules>
         <module>api</module>
+        <module>validator</module>
     </modules>
 
     <dependencies>
