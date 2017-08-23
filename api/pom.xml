@@ -22,6 +22,11 @@
             <version>${idstack.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.idstack</groupId>
+            <artifactId>feature</artifactId>
+            <version>${idstack.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
