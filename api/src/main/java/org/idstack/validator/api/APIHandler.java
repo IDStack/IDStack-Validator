@@ -15,14 +15,28 @@ import java.io.IOException;
 @RestController
 public class APIHandler {
 
+    Router router = new Router();
+
     @RequestMapping("/")
     public void root(HttpServletResponse httpServletResponse) throws IOException {
-        httpServletResponse.sendRedirect("http://docs.idstack.apiary.io");
+        httpServletResponse.sendRedirect("http://idstack.one/validator");
     }
 
     @RequestMapping(value = "/{version}/validator/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean signDocument(@PathVariable("version") String version, @RequestBody String json, @RequestHeader("Signed-Attributes") String signedAttributes) {
+    public boolean signDocument(@PathVariable("version") String version, @RequestBody String json) {
         return true;
+    }
+
+    @RequestMapping(value = "/{version}/save_configurations", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean saveConfigurationFile(@PathVariable("version") String version) {
+        return router.saveConfigurationFile();
+    }
+
+    @RequestMapping(value = "/{version}/load_configurations", method = RequestMethod.POST)
+    @ResponseBody
+    public String loadConfigurationFile(@PathVariable("version") String version) {
+        return router.loadConfigurationFile();
     }
 }
