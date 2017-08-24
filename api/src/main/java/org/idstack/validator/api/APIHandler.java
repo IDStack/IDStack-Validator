@@ -1,7 +1,9 @@
 package org.idstack.validator.api;
 
+import org.idstack.validator.feature.Constant;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -38,5 +40,17 @@ public class APIHandler {
     @ResponseBody
     public String loadConfigurationFile(@PathVariable("version") String version) {
         return router.loadConfigurationFile();
+    }
+
+    @RequestMapping(value = "/{version}/save_pub_certificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
+    public boolean savePublicCertificate(@PathVariable("version") String version, @RequestParam(value = "file", required = true) final MultipartFile certificate) {
+        return router.saveCertificate(Constant.GlobalAttribute.PUB_CERTIFICATE, certificate);
+    }
+
+    @RequestMapping(value = "/{version}/save_pvt_certificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
+    public boolean savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "file", required = true) final MultipartFile certificate) {
+        return router.saveCertificate(Constant.GlobalAttribute.PVT_CERTIFICATE, certificate);
     }
 }

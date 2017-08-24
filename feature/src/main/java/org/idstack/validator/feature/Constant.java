@@ -12,6 +12,12 @@ public class Constant {
         public static String PROPERTIES_FILE_NAME = "idstack.properties";
         public static String CONFIG_FILE_NAME = "config.idstack";
         public static String CONFIG_FILE_PATH = "CONFIG_FILE_PATH";
+        public final static String PVT_CERTIFICATE = "PVT_CERTIFICATE";
+        public final static String PUB_CERTIFICATE = "PUB_CERTIFICATE";
+        public static String PVT_CERTIFICATE_TYPE = "PVT_CERTIFICATE_TYPE";
+        public static String PUB_CERTIFICATE_TYPE = "PUB_CERTIFICATE_TYPE";
+        public static String PVT_CERTIFICATE_FILE_PATH = "PVT_CERTIFICATE_FILE_PATH";
+        public static String PUB_CERTIFICATE_FILE_PATH = "PUB_CERTIFICATE_FILE_PATH";
     }
 
     public static class JsonAttribute {

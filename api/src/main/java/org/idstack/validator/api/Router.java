@@ -2,9 +2,13 @@ package org.idstack.validator.api;
 
 import org.idstack.validator.feature.Constant;
 import org.idstack.validator.feature.FeatureImpl;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  * @author Chanaka Lakmal
@@ -56,4 +60,34 @@ public class Router {
             }
         }
     }
+
+    public boolean saveCertificate(String category, MultipartFile certificate) {
+        String src = null;
+        String type = null;
+
+        switch (category) {
+            case Constant.GlobalAttribute.PUB_CERTIFICATE:
+                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+                break;
+            case Constant.GlobalAttribute.PVT_CERTIFICATE:
+                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+                break;
+            default:
+                break;
+        }
+
+        UUID uuid = UUID.randomUUID();
+        File file = new File(src + uuid + type);
+
+        try {
+            Files.createDirectories(Paths.get(src));
+            certificate.transferTo(file);
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
