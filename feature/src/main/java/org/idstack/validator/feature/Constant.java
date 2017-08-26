@@ -21,6 +21,7 @@ public class Constant {
         public final static String PUB_CERTIFICATE_TYPE = "PUB_CERTIFICATE_TYPE";
         public final static String PVT_CERTIFICATE_FILE_PATH = "PVT_CERTIFICATE_FILE_PATH";
         public final static String PUB_CERTIFICATE_FILE_PATH = "PUB_CERTIFICATE_FILE_PATH";
+        public final static String PVT_CERTIFICATE_PASSWORD_TYPE = "PVT_CERTIFICATE_PASSWORD_TYPE";
     }
 
     public static class JsonAttribute {

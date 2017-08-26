@@ -156,7 +156,7 @@ public class Router {
         }
     }
 
-    public boolean saveCertificate(String category, MultipartFile certificate) {
+    public boolean saveCertificate(String category, MultipartFile certificate, String password) {
         String src = null;
         String type = null;
 
@@ -179,9 +179,27 @@ public class Router {
         try {
             Files.createDirectories(Paths.get(src));
             certificate.transferTo(file);
-            return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        Properties prop = new Properties();
+        OutputStream output = null;
+        try {
+            output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
+            prop.setProperty("PASSWORD", password);
+            prop.store(output, null);
+            return true;
+        } catch (IOException io) {
+            throw new RuntimeException(io);
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 

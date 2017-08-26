@@ -61,15 +61,15 @@ public class APIHandler {
         return router.loadConfiguration(type);
     }
 
-    @RequestMapping(value = "/{version}/save_pub_certificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(value = "/{version}/savepubcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public boolean savePublicCertificate(@PathVariable("version") String version, @RequestParam(value = "file", required = true) final MultipartFile certificate) {
-        return router.saveCertificate(Constant.GlobalAttribute.PUB_CERTIFICATE, certificate);
+    public boolean savePublicCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate) {
+        return router.saveCertificate(Constant.GlobalAttribute.PUB_CERTIFICATE, certificate, null);
     }
 
-    @RequestMapping(value = "/{version}/save_pvt_certificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(value = "/{version}/savepvtcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public boolean savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "file", required = true) final MultipartFile certificate) {
-        return router.saveCertificate(Constant.GlobalAttribute.PVT_CERTIFICATE, certificate);
+    public boolean savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate, @RequestHeader("Password") String password) {
+        return router.saveCertificate(Constant.GlobalAttribute.PVT_CERTIFICATE, certificate, password);
     }
 }
