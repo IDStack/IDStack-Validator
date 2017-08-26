@@ -2,6 +2,7 @@ package org.idstack.validator.api;
 
 import org.idstack.validator.feature.Constant;
 import org.idstack.validator.feature.FeatureImpl;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -159,6 +160,7 @@ public class Router {
     public boolean saveCertificate(String category, MultipartFile certificate, String password) {
         String src = null;
         String type = null;
+        boolean flag = false;
 
         switch (category) {
             case Constant.GlobalAttribute.PUB_CERTIFICATE:
@@ -168,6 +170,7 @@ public class Router {
             case Constant.GlobalAttribute.PVT_CERTIFICATE:
                 src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
                 type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+                flag = true;
                 break;
             default:
                 break;
@@ -183,24 +186,31 @@ public class Router {
             throw new RuntimeException(e);
         }
 
-        Properties prop = new Properties();
-        OutputStream output = null;
-        try {
-            output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
-            prop.setProperty("PASSWORD", password);
-            prop.store(output, null);
-            return true;
-        } catch (IOException io) {
-            throw new RuntimeException(io);
-        } finally {
-            if (output != null) {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+        if (flag) {
+            Properties prop = new Properties();
+            OutputStream output = null;
+            try {
+                output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
+                prop.setProperty("PASSWORD", password);
+                prop.store(output, null);
+            } catch (IOException io) {
+                throw new RuntimeException(io);
+            } finally {
+                if (output != null) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }
+        return true;
     }
 
+    public FileSystemResource getCertificate(String uuid) {
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+        return new FileSystemResource(new File(src + uuid + type));
+    }
 }
