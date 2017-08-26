@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Chanaka Lakmal
@@ -30,16 +31,34 @@ public class APIHandler {
         return true;
     }
 
-    @RequestMapping(value = "/{version}/save_configurations", method = RequestMethod.POST)
+    @RequestMapping(value = "/{version}/saveconfig/basic", method = RequestMethod.POST)
     @ResponseBody
-    public boolean saveConfigurationFile(@PathVariable("version") String version) {
-        return router.saveConfigurationFile();
+    public boolean saveBasicConfiguration(@PathVariable("version") String version, @RequestHeader("Organization") String org, @RequestHeader("Email") String email) {
+        return router.saveBasicConfiguration(org, email);
     }
 
-    @RequestMapping(value = "/{version}/load_configurations", method = RequestMethod.POST)
+    @RequestMapping(value = "/{version}/saveconfig/document", method = RequestMethod.POST)
     @ResponseBody
-    public String loadConfigurationFile(@PathVariable("version") String version) {
-        return router.loadConfigurationFile();
+    public boolean saveDocumentConfiguration(@PathVariable("version") String version, @RequestHeader("Document") Map<String, String> configurations) {
+        return router.saveDocumentConfiguration(configurations);
+    }
+
+    @RequestMapping(value = "/{version}/saveconfig/whitelist", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean saveWhiteListConfiguration(@PathVariable("version") String version, @RequestHeader("WhiteList") Map<String, String> configurations) {
+        return router.saveWhiteListConfiguration(configurations);
+    }
+
+    @RequestMapping(value = "/{version}/saveconfig/blacklist", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean saveBlackListConfiguration(@PathVariable("version") String version, @RequestHeader("BlackList") Map<String, String> configurations) {
+        return router.saveBlackListConfiguration(configurations);
+    }
+
+    @RequestMapping(value = "/{version}/loadconfig/{type}", method = RequestMethod.POST)
+    @ResponseBody
+    public String loadConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type) {
+        return router.loadConfiguration(type);
     }
 
     @RequestMapping(value = "/{version}/save_pub_certificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

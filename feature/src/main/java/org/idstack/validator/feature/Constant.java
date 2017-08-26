@@ -9,15 +9,18 @@ package org.idstack.validator.feature;
 public class Constant {
 
     public static class GlobalAttribute {
-        public static String PROPERTIES_FILE_NAME = "idstack.properties";
-        public static String CONFIG_FILE_NAME = "config.idstack";
-        public static String CONFIG_FILE_PATH = "CONFIG_FILE_PATH";
+        public final static String PROPERTIES_FILE_NAME = "idstack.properties";
+        public final static String BASIC_CONFIG_FILE_NAME = "basic.config.idstack";
+        public final static String DOCUMENT_CONFIG_FILE_NAME = "document.config.idstack";
+        public final static String WHITELIST_CONFIG_FILE_NAME = "whitelist.config.idstack";
+        public final static String BLACKLIST_CONFIG_FILE_NAME = "blacklist.config.idstack";
+        public final static String CONFIG_FILE_PATH = "CONFIG_FILE_PATH";
         public final static String PVT_CERTIFICATE = "PVT_CERTIFICATE";
         public final static String PUB_CERTIFICATE = "PUB_CERTIFICATE";
-        public static String PVT_CERTIFICATE_TYPE = "PVT_CERTIFICATE_TYPE";
-        public static String PUB_CERTIFICATE_TYPE = "PUB_CERTIFICATE_TYPE";
-        public static String PVT_CERTIFICATE_FILE_PATH = "PVT_CERTIFICATE_FILE_PATH";
-        public static String PUB_CERTIFICATE_FILE_PATH = "PUB_CERTIFICATE_FILE_PATH";
+        public final static String PVT_CERTIFICATE_TYPE = "PVT_CERTIFICATE_TYPE";
+        public final static String PUB_CERTIFICATE_TYPE = "PUB_CERTIFICATE_TYPE";
+        public final static String PVT_CERTIFICATE_FILE_PATH = "PVT_CERTIFICATE_FILE_PATH";
+        public final static String PUB_CERTIFICATE_FILE_PATH = "PUB_CERTIFICATE_FILE_PATH";
     }
 
     public static class JsonAttribute {
