@@ -56,7 +56,7 @@ public class APIHandler {
         return router.saveBlackListConfiguration(configurations);
     }
 
-    @RequestMapping(value = "/{version}/loadconfig/{type}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{version}/loadconfig/{type}", method = RequestMethod.GET)
     @ResponseBody
     public String loadConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type) {
         return router.loadConfiguration(type);
