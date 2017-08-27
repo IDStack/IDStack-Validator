@@ -39,7 +39,7 @@ public class Parser {
         LinkedHashMap<String, Object> contentMap = parseContent(contentObject);
 
         //create metadata object
-        MetaData metaData = new MetaData(metadataObject.get(Constant.JsonAttribute.MetaData.NAME).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.VERSION).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_ID).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_TYPE).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.ISSUER).getAsString());
+        MetaData metaData = new MetaData(metadataObject.get(Constant.JsonAttribute.MetaData.NAME).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.VERSION).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_ID).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_TYPE).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.ISSUER).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.URL).getAsString());
 
         //create extractor object
         Extractor extractor = new Extractor(extractorObject.get(Constant.JsonAttribute.Extractor.ID).getAsString(), new Gson().fromJson(extractorObject.get(Constant.JsonAttribute.Extractor.SIGNATURE).toString(), Signature.class));

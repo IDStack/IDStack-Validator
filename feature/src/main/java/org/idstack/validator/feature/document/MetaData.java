@@ -12,13 +12,15 @@ public class MetaData {
     private String document_id;
     private String document_type;
     private String issuer;
+    private String url;
 
-    public MetaData(String name, String version, String document_id, String document_type, String issuer) {
+    public MetaData(String name, String version, String document_id, String document_type, String issuer, String url) {
         this.name = name;
         this.version = version;
         this.document_id = document_id;
         this.document_type = document_type;
         this.issuer = issuer;
+        this.url = url;
     }
 
     public String getName() {
@@ -59,5 +61,13 @@ public class MetaData {
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
