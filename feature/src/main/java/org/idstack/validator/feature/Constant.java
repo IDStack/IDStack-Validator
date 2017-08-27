@@ -9,7 +9,7 @@ package org.idstack.validator.feature;
 public class Constant {
 
     public static class GlobalAttribute {
-        public final static String PROPERTIES_FILE_NAME = "idstack.properties";
+        public final static String SYSTEM_PROPERTIES_FILE_NAME = "idstack.properties";
         public final static String BASIC_CONFIG_FILE_NAME = "basic.config.idstack";
         public final static String DOCUMENT_CONFIG_FILE_NAME = "document.config.idstack";
         public final static String WHITELIST_CONFIG_FILE_NAME = "whitelist.config.idstack";
