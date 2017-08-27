@@ -26,4 +26,10 @@ public interface Feature {
 
     String signDocument(String json);
 
+    String getPublicCertificate(String uuid);
+
+    String getPrivateCertificate();
+
+    String getPassword();
+
 }

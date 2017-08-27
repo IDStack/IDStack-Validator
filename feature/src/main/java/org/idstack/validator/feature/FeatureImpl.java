@@ -273,4 +273,27 @@ public class FeatureImpl implements Feature {
         throw new IllegalArgumentException("One or more signatures are blacklisted");
     }
 
+    @Override
+    public String getPublicCertificate(String uuid) {
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+        return src + uuid + type;
+    }
+
+    @Override
+    public String getPrivateCertificate() {
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
+        return src + uuid + type;
+    }
+
+    @Override
+    public String getPassword() {
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
+        return src + uuid + type;
+    }
+
 }

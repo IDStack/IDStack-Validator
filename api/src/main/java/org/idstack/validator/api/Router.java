@@ -63,10 +63,8 @@ public class Router {
         }
     }
 
-    public FileSystemResource getCertificate(String uuid) {
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
-        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
-        return new FileSystemResource(new File(src + uuid + type));
+    public FileSystemResource getPublicCertificate(String uuid) {
+        return new FileSystemResource(new File(FeatureImpl.getFactory().getPublicCertificate(uuid)));
     }
 
 
