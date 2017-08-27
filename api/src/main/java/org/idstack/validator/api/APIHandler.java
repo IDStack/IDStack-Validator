@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -28,8 +29,8 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/validator/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean signDocument(@PathVariable("version") String version, @RequestBody String json) {
-        return true;
+    public String signDocument(@PathVariable("version") String version, @RequestBody String json) {
+        return router.signDocument(json);
     }
 
     @RequestMapping(value = "/{version}/saveconfig/basic", method = RequestMethod.POST)
@@ -58,7 +59,7 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/loadconfig/{type}", method = RequestMethod.GET)
     @ResponseBody
-    public String loadConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type) {
+    public Properties loadConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type) {
         return router.loadConfiguration(type);
     }
 

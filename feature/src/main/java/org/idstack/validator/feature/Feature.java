@@ -2,6 +2,7 @@ package org.idstack.validator.feature;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -20,8 +21,10 @@ public interface Feature {
 
     boolean saveBlackListConfiguration(Map<String, String> configurations);
 
-    String loadConfiguration(String type);
+    Properties loadConfiguration(String type);
 
     File saveCertificate(String category, String password);
+
+    String signDocument(String json);
 
 }

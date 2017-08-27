@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -32,7 +33,7 @@ public class Router {
         return FeatureImpl.getFactory().saveBlackListConfiguration(configurations);
     }
 
-    public String loadConfiguration(String type) {
+    public Properties loadConfiguration(String type) {
         return FeatureImpl.getFactory().loadConfiguration(type);
     }
 
@@ -50,5 +51,10 @@ public class Router {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
         String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
         return new FileSystemResource(new File(src + uuid + type));
+    }
+
+
+    public String signDocument(String json) {
+        return FeatureImpl.getFactory().signDocument(json);
     }
 }

@@ -1,12 +1,12 @@
 package org.idstack.validator.feature;
 
+import org.idstack.validator.feature.document.Document;
+import org.idstack.validator.feature.document.Validator;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -152,7 +152,7 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public String loadConfiguration(String type) {
+    public Properties loadConfiguration(String type) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
 
         switch (type) {
@@ -174,7 +174,7 @@ public class FeatureImpl implements Feature {
         try {
             input = new FileInputStream(src);
             prop.load(input);
-            return prop.toString();
+            return prop;
         } catch (IOException io) {
             throw new RuntimeException(io);
         } finally {
@@ -237,6 +237,43 @@ public class FeatureImpl implements Feature {
         }
 
         return new File(src + uuid + type);
+    }
+
+    @Override
+    public String signDocument(String json) {
+
+        Document document = Parser.parseDocumentJson(json);
+
+        ArrayList<String> urlList = new ArrayList<>();
+        urlList.add(document.getExtractor().getSignature().getUrl());
+        for (Validator validator : document.getValidators()) {
+            urlList.add(validator.getSignature().getUrl());
+        }
+
+        Properties whitelist = loadConfiguration("whitelist");
+        Properties blacklist = loadConfiguration("blacklist");
+        boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
+
+        if (!isBlackListed) {
+            String documentConfig = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
+            boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(":")[0]);
+            boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(":")[1]);
+            boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(":")[2]);
+
+            if (isAutomaticProcessable) {
+                if (isExtractorIssuer)
+                    if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
+                        return "Extractor should be the issuer";
+                // TODO
+                // call sign method(document, isContentSignable, whitelist.values())
+                // sign method should check whether the whitelist urls are available at JSON and if only sign them
+                // if isContentSignable=false and no whitelist values can be found in JSON then return a msg as nothing to be signed
+            }
+
+            return "Wait";
+        }
+
+        throw new IllegalArgumentException("One or more signatures are blacklisted");
     }
 
 }
