@@ -54,6 +54,7 @@ public class FeatureImpl implements Feature {
         Properties prop = new Properties();
         OutputStream output = null;
         try {
+            Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME);
             prop.setProperty("ORGANIZATION", org);
             prop.setProperty("EMAIL", email);
@@ -80,6 +81,7 @@ public class FeatureImpl implements Feature {
         Properties prop = new Properties();
         OutputStream output = null;
         try {
+            Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME);
             for (String config : configList) {
                 prop.setProperty(config.split("#")[0].trim(), config.split("#")[1].trim());
@@ -106,6 +108,7 @@ public class FeatureImpl implements Feature {
         Properties prop = new Properties();
         OutputStream output = null;
         try {
+            Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME);
             for (int i = 0; i < configList.size(); i++) {
                 prop.setProperty("WHITE_URL_" + i, configList.get(i).trim());
@@ -132,6 +135,7 @@ public class FeatureImpl implements Feature {
         Properties prop = new Properties();
         OutputStream output = null;
         try {
+            Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME);
             for (int i = 0; i < configList.size(); i++) {
                 prop.setProperty("BLACK_URL_" + i, configList.get(i).trim());
@@ -152,10 +156,13 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public Properties loadConfiguration(String type) {
+    public Object getConfiguration(String type, String property) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
 
         switch (type) {
+            case "basic":
+                src += Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME;
+                break;
             case "document":
                 src += Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME;
                 break;
@@ -174,7 +181,10 @@ public class FeatureImpl implements Feature {
         try {
             input = new FileInputStream(src);
             prop.load(input);
-            return prop;
+            if (property.equals("*"))
+                return prop;
+            else
+                return prop.get(property);
         } catch (IOException io) {
             throw new RuntimeException(io);
         } finally {
@@ -214,7 +224,7 @@ public class FeatureImpl implements Feature {
             throw new RuntimeException(e);
         }
 
-        UUID uuid = UUID.randomUUID();
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration("basic", "UUID");
 
         if (flag) {
             Properties prop = new Properties();
@@ -250,8 +260,8 @@ public class FeatureImpl implements Feature {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = loadConfiguration("whitelist");
-        Properties blacklist = loadConfiguration("blacklist");
+        Properties whitelist = (Properties) getConfiguration("whitelist", "*");
+        Properties blacklist = (Properties) getConfiguration("blacklist", "*");
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
 
         if (!isBlackListed) {
@@ -261,6 +271,7 @@ public class FeatureImpl implements Feature {
             boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(":")[2]);
 
             if (isAutomaticProcessable) {
+                // TODO : improve this by checking 'issuer in the validators list'
                 if (isExtractorIssuer)
                     if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                         return "Extractor should be the issuer";

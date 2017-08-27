@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -57,10 +56,10 @@ public class APIHandler {
         return router.saveBlackListConfiguration(configurations);
     }
 
-    @RequestMapping(value = "/{version}/loadconfig/{type}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{version}/getconfig/{type}/{property}", method = RequestMethod.GET)
     @ResponseBody
-    public Properties loadConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type) {
-        return router.loadConfiguration(type);
+    public Object getConfigurationFile(@PathVariable("version") String version, @PathVariable("type") String type, @PathVariable("property") String property) {
+        return router.getConfiguration(type, property);
     }
 
     @RequestMapping(value = "/{version}/savepubcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

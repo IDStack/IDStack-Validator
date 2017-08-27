@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -33,8 +32,8 @@ public class Router {
         return FeatureImpl.getFactory().saveBlackListConfiguration(configurations);
     }
 
-    public Properties loadConfiguration(String type) {
-        return FeatureImpl.getFactory().loadConfiguration(type);
+    public Object getConfiguration(String type, String property) {
+        return FeatureImpl.getFactory().getConfiguration(type, property);
     }
 
     public boolean saveCertificate(String category, MultipartFile certificate, String password) {
