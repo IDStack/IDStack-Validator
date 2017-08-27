@@ -28,11 +28,11 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public String getProperty(String propertyFile, String property) {
+    public String getProperty(String property) {
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream(getClass().getClassLoader().getResource(propertyFile).getFile());
+            input = new FileInputStream(getClass().getClassLoader().getResource(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME).getFile());
             prop.load(input);
             return prop.getProperty(property);
         } catch (IOException io) {
@@ -50,7 +50,7 @@ public class FeatureImpl implements Feature {
 
     @Override
     public boolean saveBasicConfiguration(String org, String email) {
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
         Properties prop = new Properties();
         OutputStream output = null;
         try {
@@ -77,7 +77,7 @@ public class FeatureImpl implements Feature {
     @Override
     public boolean saveDocumentConfiguration(Map<String, String> configurations) {
         ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("document").split(",")).collect(Collectors.toList());
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
         Properties prop = new Properties();
         OutputStream output = null;
         try {
@@ -104,7 +104,7 @@ public class FeatureImpl implements Feature {
     @Override
     public boolean saveWhiteListConfiguration(Map<String, String> configurations) {
         ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("whitelist").split(",")).collect(Collectors.toList());
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
         Properties prop = new Properties();
         OutputStream output = null;
         try {
@@ -131,7 +131,7 @@ public class FeatureImpl implements Feature {
     @Override
     public boolean saveBlackListConfiguration(Map<String, String> configurations) {
         ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("blacklist").split(",")).collect(Collectors.toList());
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
         Properties prop = new Properties();
         OutputStream output = null;
         try {
@@ -156,25 +156,8 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public Object getConfiguration(String type, String property) {
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.CONFIG_FILE_PATH);
-
-        switch (type) {
-            case "basic":
-                src += Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME;
-                break;
-            case "document":
-                src += Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME;
-                break;
-            case "whitelist":
-                src += Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME;
-                break;
-            case "blacklist":
-                src += Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME;
-                break;
-            default:
-                break;
-        }
+    public Object getConfiguration(String fileName, String property) {
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH) + fileName;
 
         Properties prop = new Properties();
         InputStream input = null;
@@ -206,12 +189,12 @@ public class FeatureImpl implements Feature {
 
         switch (category) {
             case Constant.GlobalAttribute.PUB_CERTIFICATE:
-                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
-                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
                 break;
             case Constant.GlobalAttribute.PVT_CERTIFICATE:
-                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
-                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+                src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+                type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
                 flag = true;
                 break;
             default:
@@ -224,13 +207,13 @@ public class FeatureImpl implements Feature {
             throw new RuntimeException(e);
         }
 
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration("basic", "UUID");
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
 
         if (flag) {
             Properties prop = new Properties();
             OutputStream output = null;
             try {
-                output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
+                output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
                 prop.setProperty("PASSWORD", password);
                 prop.store(output, null);
             } catch (IOException io) {
@@ -260,12 +243,12 @@ public class FeatureImpl implements Feature {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = (Properties) getConfiguration("whitelist", "*");
-        Properties blacklist = (Properties) getConfiguration("blacklist", "*");
+        Properties whitelist = (Properties) getConfiguration(Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME, "*");
+        Properties blacklist = (Properties) getConfiguration(Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME, "*");
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
 
         if (!isBlackListed) {
-            String documentConfig = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
+            String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
             boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(":")[0]);
             boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(":")[1]);
             boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(":")[2]);

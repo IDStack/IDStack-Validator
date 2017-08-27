@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface Feature {
 
-    String getProperty(String propertyFile, String property);
+    String getProperty(String property);
 
     boolean saveBasicConfiguration(String org, String email);
 

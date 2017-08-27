@@ -33,7 +33,24 @@ public class Router {
     }
 
     public Object getConfiguration(String type, String property) {
-        return FeatureImpl.getFactory().getConfiguration(type, property);
+        String src = null;
+        switch (type) {
+            case "basic":
+                src = Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME;
+                break;
+            case "document":
+                src = Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME;
+                break;
+            case "whitelist":
+                src = Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME;
+                break;
+            case "blacklist":
+                src = Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME;
+                break;
+            default:
+                break;
+        }
+        return FeatureImpl.getFactory().getConfiguration(src, property);
     }
 
     public boolean saveCertificate(String category, MultipartFile certificate, String password) {
@@ -47,8 +64,8 @@ public class Router {
     }
 
     public FileSystemResource getCertificate(String uuid) {
-        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
-        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME, Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+        String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+        String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
         return new FileSystemResource(new File(src + uuid + type));
     }
 
