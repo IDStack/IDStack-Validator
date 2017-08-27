@@ -51,6 +51,7 @@ public class FeatureImpl implements Feature {
     @Override
     public boolean saveBasicConfiguration(String org, String email) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
         Properties prop = new Properties();
         OutputStream output = null;
         try {
@@ -59,6 +60,8 @@ public class FeatureImpl implements Feature {
             prop.setProperty("ORGANIZATION", org);
             prop.setProperty("EMAIL", email);
             prop.setProperty("UUID", UUID.randomUUID().toString());
+            if (uuid != null)
+                prop.setProperty("UUID", uuid);
             prop.store(output, null);
             return true;
         } catch (IOException io) {
