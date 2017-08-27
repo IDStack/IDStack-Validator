@@ -13,13 +13,13 @@ public class Document {
     private MetaData meta_data;
     private LinkedHashMap<String, Object> content;
     private Extractor extractor;
-    private ArrayList<Signer> signers;
+    private ArrayList<Validator> validators;
 
-    public Document(MetaData meta_data, LinkedHashMap<String, Object> content, Extractor extractor, ArrayList<Signer> signers) {
+    public Document(MetaData meta_data, LinkedHashMap<String, Object> content, Extractor extractor, ArrayList<Validator> validators) {
         this.meta_data = meta_data;
         this.content = content;
         this.extractor = extractor;
-        this.signers = signers;
+        this.validators = validators;
     }
 
     public MetaData getMetaData() {
@@ -46,11 +46,11 @@ public class Document {
         this.extractor = extractor;
     }
 
-    public ArrayList<Signer> getSigners() {
-        return signers;
+    public ArrayList<Validator> getValidators() {
+        return validators;
     }
 
-    public void setSigners(ArrayList<Signer> signers) {
-        this.signers = signers;
+    public void setValidators(ArrayList<Validator> validators) {
+        this.validators = validators;
     }
 }

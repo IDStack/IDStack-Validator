@@ -29,7 +29,7 @@ public class Constant {
         public static String META_DATA = "meta_data";
         public static String CONTENT = "content";
         public static String EXTRACTOR = "extractor";
-        public static String SIGNERS = "signers";
+        public static String VALIDATORS = "validators";
 
         public static class MetaData {
             public static String NAME = "name";
@@ -44,7 +44,7 @@ public class Constant {
             public static String SIGNATURE = "signature";
         }
 
-        public static class Signers {
+        public static class Validators {
             public static String ID = "id";
             public static String SIGNATURE = "signature";
             public static String SIGNED_CONTENT = "signed_content";

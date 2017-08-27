@@ -18,7 +18,7 @@ public class Parser {
      * document = complex json object with NO ARRAYS
      * verifier = simple json object
      * |-- signature = json object
-     * signers = an array of json objects
+     * validators = an array of json objects
      * |-- id = string
      * |-- signature = json object
      * |-- signedAttributes = String Array
@@ -33,21 +33,21 @@ public class Parser {
         JsonObject metadataObject = obj.getAsJsonObject(Constant.JsonAttribute.META_DATA);
         JsonObject contentObject = obj.getAsJsonObject(Constant.JsonAttribute.CONTENT);
         JsonObject extractorObject = obj.getAsJsonObject(Constant.JsonAttribute.EXTRACTOR);
-        JsonArray signersObject = obj.getAsJsonArray(Constant.JsonAttribute.SIGNERS);
+        JsonArray validatorsObject = obj.getAsJsonArray(Constant.JsonAttribute.VALIDATORS);
 
         //create LinkedHAshMap
         LinkedHashMap<String, Object> contentMap = parseContent(contentObject);
 
         //create metadata object
-        MetaData metaData = new MetaData(metadataObject.get(Constant.JsonAttribute.MetaData.NAME).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.VERSION).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_ID).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_TYPE).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.ISSUER).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.URL).getAsString());
+        MetaData metaData = new MetaData(metadataObject.get(Constant.JsonAttribute.MetaData.NAME).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.VERSION).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_ID).getAsString(), metadataObject.get(Constant.JsonAttribute.MetaData.DOCUMENT_TYPE).getAsString(), new Gson().fromJson(extractorObject.get(Constant.JsonAttribute.MetaData.ISSUER).toString(), Issuer.class));
 
         //create extractor object
         Extractor extractor = new Extractor(extractorObject.get(Constant.JsonAttribute.Extractor.ID).getAsString(), new Gson().fromJson(extractorObject.get(Constant.JsonAttribute.Extractor.SIGNATURE).toString(), Signature.class));
 
-        //create signer list
-        ArrayList<Signer> signers = parseSigners(signersObject);
+        //create validator list
+        ArrayList<Validator> validators = parseValidators(validatorsObject);
 
-        Document doc = new Document(metaData, contentMap, extractor, signers);
+        Document doc = new Document(metaData, contentMap, extractor, validators);
 
         return doc;
     }
@@ -79,41 +79,41 @@ public class Parser {
 
 
     /**
-     * signers = an array of json objects
+     * validators = an array of json objects
      * |-- id = string
      * |-- signature = json object
      * |-- signedAttributes = String Array
      * |-- signedSignatures = String Array
      *
-     * @param signerJsonArray json array of signers
-     * @return list of signer objects
+     * @param validatorJsonArray json array of validators
+     * @return list of validator objects
      */
-    private static ArrayList<Signer> parseSigners(JsonArray signerJsonArray) {
-        ArrayList<Signer> signers = new ArrayList<>();
-        for (JsonElement element : signerJsonArray) {
+    private static ArrayList<Validator> parseValidators(JsonArray validatorJsonArray) {
+        ArrayList<Validator> validators = new ArrayList<>();
+        for (JsonElement element : validatorJsonArray) {
             JsonObject arrayItem = element.getAsJsonObject();
 
             //add id
-            String id = arrayItem.get(Constant.JsonAttribute.Signers.ID).getAsString();
+            String id = arrayItem.get(Constant.JsonAttribute.Validators.ID).getAsString();
 
             //add signature
-            JsonObject signatureObject = arrayItem.getAsJsonObject(Constant.JsonAttribute.Signers.SIGNATURE);
+            JsonObject signatureObject = arrayItem.getAsJsonObject(Constant.JsonAttribute.Validators.SIGNATURE);
             Signature signature = new Gson().fromJson(signatureObject.toString(), Signature.class);
 
             //add signed content
-            boolean signedContent = arrayItem.get(Constant.JsonAttribute.Signers.SIGNED_CONTENT).getAsBoolean();
+            boolean signedContent = arrayItem.get(Constant.JsonAttribute.Validators.SIGNED_CONTENT).getAsBoolean();
 
             //add signed signatures
             ArrayList<String> signedSignatures = new ArrayList<>();
-            JsonArray signedSignaturesArray = arrayItem.getAsJsonArray(Constant.JsonAttribute.Signers.SIGNED_SIGNATURES);
+            JsonArray signedSignaturesArray = arrayItem.getAsJsonArray(Constant.JsonAttribute.Validators.SIGNED_SIGNATURES);
             if (signedSignaturesArray != null)
                 for (JsonElement sign : signedSignaturesArray) {
                     signedSignatures.add(sign.getAsString());
                 }
             //add the entire object to the final arraylist
-            signers.add(new Signer(id, signature, signedContent, signedSignatures));
+            validators.add(new Validator(id, signature, signedContent, signedSignatures));
         }
-        return signers;
+        return validators;
     }
 
 

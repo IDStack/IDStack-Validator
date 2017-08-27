@@ -11,16 +11,14 @@ public class MetaData {
     private String version;
     private String document_id;
     private String document_type;
-    private String issuer;
-    private String url;
+    private Issuer issuer;
 
-    public MetaData(String name, String version, String document_id, String document_type, String issuer, String url) {
+    public MetaData(String name, String version, String document_id, String document_type, Issuer issuer) {
         this.name = name;
         this.version = version;
         this.document_id = document_id;
         this.document_type = document_type;
         this.issuer = issuer;
-        this.url = url;
     }
 
     public String getName() {
@@ -55,19 +53,11 @@ public class MetaData {
         this.document_type = document_type;
     }
 
-    public String getIssuer() {
+    public Issuer getIssuer() {
         return issuer;
     }
 
-    public void setIssuer(String issuer) {
+    public void setIssuer(Issuer issuer) {
         this.issuer = issuer;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 }

@@ -7,14 +7,14 @@ import java.util.ArrayList;
  * @date 31/5/2017
  * @since 1.0
  */
-public class Signer {
+public class Validator {
 
     String id;
     Signature signature;
     boolean signed_content;
     ArrayList<String> signed_signatures;
 
-    public Signer(String id, Signature signature, boolean signed_content, ArrayList<String> signed_signatures) {
+    public Validator(String id, Signature signature, boolean signed_content, ArrayList<String> signed_signatures) {
         this.id = id;
         this.signature = signature;
         this.signed_content = signed_content;
