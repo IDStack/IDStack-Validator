@@ -26,7 +26,7 @@ public class APIHandler {
         httpServletResponse.sendRedirect("http://idstack.one/validator");
     }
 
-    @RequestMapping(value = "/{version}/validator/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocument(@PathVariable("version") String version, @RequestBody String json) {
         return router.signDocument(json);
