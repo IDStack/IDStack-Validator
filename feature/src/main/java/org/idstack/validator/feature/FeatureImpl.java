@@ -249,6 +249,7 @@ public class FeatureImpl implements Feature {
         Properties whitelist = (Properties) getConfiguration(Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME, "*");
         Properties blacklist = (Properties) getConfiguration(Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME, "*");
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
+        boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
         if (!isBlackListed) {
             String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
@@ -261,10 +262,16 @@ public class FeatureImpl implements Feature {
                 if (isExtractorIssuer)
                     if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                         return "Extractor should be the issuer";
-                // TODO
-                // call sign method(document, isContentSignable, whitelist.values())
-                // sign method should check whether the whitelist urls are available at JSON and if only sign them
-                // if isContentSignable=false and no whitelist values can be found in JSON then return a msg as nothing to be signed
+
+                if (!isContentSignable && !isWhiteListed)
+                    return "Nothing to be signed";
+
+                boolean flag = urlList.retainAll(whitelist.values());
+                if (flag) {
+                    // TODO
+                    // call sign method(document, isContentSignable, urlList)
+                    // sign method should sign only the urlList available in the JSON
+                }
             }
 
             return "Wait";
