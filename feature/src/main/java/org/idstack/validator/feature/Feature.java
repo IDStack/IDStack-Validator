@@ -1,7 +1,7 @@
 package org.idstack.validator.feature;
 
 import java.io.File;
-import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -12,13 +12,13 @@ public interface Feature {
 
     String getProperty(String property);
 
-    boolean saveBasicConfiguration(String org, String email);
+    boolean saveBasicConfiguration(String json);
 
-    boolean saveDocumentConfiguration(Map<String, String> configurations);
+    boolean saveDocumentConfiguration(String json);
 
-    boolean saveWhiteListConfiguration(Map<String, String> configurations);
+    boolean saveWhiteListConfiguration(String json);
 
-    boolean saveBlackListConfiguration(Map<String, String> configurations);
+    boolean saveBlackListConfiguration(String json);
 
     Object getConfiguration(String type, String property);
 
@@ -31,5 +31,7 @@ public interface Feature {
     String getPrivateCertificate();
 
     String getPassword();
+
+    Properties parseJson(String json);
 
 }

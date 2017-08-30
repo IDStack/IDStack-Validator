@@ -8,6 +8,9 @@ package org.idstack.validator.feature;
 
 public class Constant {
 
+    public final static String UUID = "uuid";
+    public final static String ALL = "*";
+
     public static class GlobalAttribute {
         public final static String SYSTEM_PROPERTIES_FILE_NAME = "idstack.properties";
         public final static String BASIC_CONFIG_FILE_NAME = "basic.config.idstack";
@@ -22,6 +25,7 @@ public class Constant {
         public final static String PVT_CERTIFICATE_FILE_PATH = "PVT_CERTIFICATE_FILE_PATH";
         public final static String PUB_CERTIFICATE_FILE_PATH = "PUB_CERTIFICATE_FILE_PATH";
         public final static String PVT_CERTIFICATE_PASSWORD_TYPE = "PVT_CERTIFICATE_PASSWORD_TYPE";
+        public final static String PVT_CERTIFICATE_PASSWORD = "password";
     }
 
     public static class JsonAttribute {

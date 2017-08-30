@@ -1,5 +1,7 @@
 package org.idstack.validator.feature;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.idstack.validator.feature.document.Document;
 import org.idstack.validator.feature.document.Validator;
 
@@ -7,8 +9,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Chanaka Lakmal
@@ -49,19 +49,17 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public boolean saveBasicConfiguration(String org, String email) {
+    public boolean saveBasicConfiguration(String json) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
-        Properties prop = new Properties();
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
+        Properties prop = parseJson(json);
         OutputStream output = null;
         try {
             Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME);
-            prop.setProperty("ORGANIZATION", org);
-            prop.setProperty("EMAIL", email);
-            prop.setProperty("UUID", UUID.randomUUID().toString());
+            prop.setProperty(Constant.UUID, UUID.randomUUID().toString());
             if (uuid != null)
-                prop.setProperty("UUID", uuid);
+                prop.setProperty(Constant.UUID, uuid);
             prop.store(output, null);
             return true;
         } catch (IOException io) {
@@ -78,17 +76,13 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public boolean saveDocumentConfiguration(Map<String, String> configurations) {
-        ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("document").split(",")).collect(Collectors.toList());
+    public boolean saveDocumentConfiguration(String json) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-        Properties prop = new Properties();
+        Properties prop = parseJson(json);
         OutputStream output = null;
         try {
             Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME);
-            for (String config : configList) {
-                prop.setProperty(config.split("#")[0].trim(), config.split("#")[1].trim());
-            }
             prop.store(output, null);
             return true;
         } catch (IOException io) {
@@ -105,17 +99,13 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public boolean saveWhiteListConfiguration(Map<String, String> configurations) {
-        ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("whitelist").split(",")).collect(Collectors.toList());
+    public boolean saveWhiteListConfiguration(String json) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-        Properties prop = new Properties();
+        Properties prop = parseJson(json);
         OutputStream output = null;
         try {
             Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME);
-            for (int i = 0; i < configList.size(); i++) {
-                prop.setProperty("WHITE_URL_" + i, configList.get(i).trim());
-            }
             prop.store(output, null);
             return true;
         } catch (IOException io) {
@@ -132,17 +122,13 @@ public class FeatureImpl implements Feature {
     }
 
     @Override
-    public boolean saveBlackListConfiguration(Map<String, String> configurations) {
-        ArrayList<String> configList = (ArrayList<String>) Stream.of(configurations.get("blacklist").split(",")).collect(Collectors.toList());
+    public boolean saveBlackListConfiguration(String json) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-        Properties prop = new Properties();
+        Properties prop = parseJson(json);
         OutputStream output = null;
         try {
             Files.createDirectories(Paths.get(src));
             output = new FileOutputStream(src + Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME);
-            for (int i = 0; i < configList.size(); i++) {
-                prop.setProperty("BLACK_URL_" + i, configList.get(i).trim());
-            }
             prop.store(output, null);
             return true;
         } catch (IOException io) {
@@ -169,7 +155,7 @@ public class FeatureImpl implements Feature {
         try {
             input = new FileInputStream(src);
             prop.load(input);
-            if (property.equals("*"))
+            if (property.equals(Constant.ALL))
                 return prop;
             else
                 return prop.get(property);
@@ -212,14 +198,14 @@ public class FeatureImpl implements Feature {
             throw new RuntimeException(e);
         }
 
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
 
         if (flag) {
             Properties prop = new Properties();
             OutputStream output = null;
             try {
                 output = new FileOutputStream(src + uuid + FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
-                prop.setProperty("PASSWORD", password);
+                prop.setProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD, password);
                 prop.store(output, null);
             } catch (IOException io) {
                 throw new RuntimeException(io);
@@ -248,16 +234,16 @@ public class FeatureImpl implements Feature {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = (Properties) getConfiguration(Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME, "*");
-        Properties blacklist = (Properties) getConfiguration(Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME, "*");
+        Properties whitelist = (Properties) getConfiguration(Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME, Constant.ALL);
+        Properties blacklist = (Properties) getConfiguration(Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME, Constant.ALL);
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
         boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
         if (!isBlackListed) {
             String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
-            boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(":")[0]);
-            boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(":")[1]);
-            boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(":")[2]);
+            boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
+            boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
+            boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
 
             if (isAutomaticProcessable) {
                 // TODO : improve this by checking 'issuer in the validators list'
@@ -293,7 +279,7 @@ public class FeatureImpl implements Feature {
     public String getPrivateCertificate() {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
         String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
         return src + uuid + type;
     }
 
@@ -301,8 +287,17 @@ public class FeatureImpl implements Feature {
     public String getPassword() {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
         String type = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, "UUID");
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
         return src + uuid + type;
     }
 
+    @Override
+    public Properties parseJson(String json) {
+        JsonParser parser = new JsonParser();
+        Properties properties = new Properties();
+        for (Map.Entry<String, JsonElement> entry : parser.parse(json).getAsJsonObject().entrySet()) {
+            properties.setProperty(entry.getKey(), entry.getValue().getAsString());
+        }
+        return properties;
+    }
 }

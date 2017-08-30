@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @author Chanaka Lakmal
@@ -16,20 +15,20 @@ import java.util.Map;
  */
 public class Router {
 
-    public boolean saveBasicConfiguration(String org, String email) {
-        return FeatureImpl.getFactory().saveBasicConfiguration(org, email);
+    public boolean saveBasicConfiguration(String json) {
+        return FeatureImpl.getFactory().saveBasicConfiguration(json);
     }
 
-    public boolean saveDocumentConfiguration(Map<String, String> configurations) {
-        return FeatureImpl.getFactory().saveDocumentConfiguration(configurations);
+    public boolean saveDocumentConfiguration(String json) {
+        return FeatureImpl.getFactory().saveDocumentConfiguration(json);
     }
 
-    public boolean saveWhiteListConfiguration(Map<String, String> configurations) {
-        return FeatureImpl.getFactory().saveWhiteListConfiguration(configurations);
+    public boolean saveWhiteListConfiguration(String json) {
+        return FeatureImpl.getFactory().saveWhiteListConfiguration(json);
     }
 
-    public boolean saveBlackListConfiguration(Map<String, String> configurations) {
-        return FeatureImpl.getFactory().saveBlackListConfiguration(configurations);
+    public boolean saveBlackListConfiguration(String json) {
+        return FeatureImpl.getFactory().saveBlackListConfiguration(json);
     }
 
     public Object getConfiguration(String type, String property) {
