@@ -162,6 +162,8 @@ public class FeatureImpl implements Feature {
     public Object getConfiguration(String fileName, String property) {
         String src = FeatureImpl.getFactory().getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH) + fileName;
 
+        if (!Files.exists(Paths.get(src)))
+            return null;
         Properties prop = new Properties();
         InputStream input = null;
         try {
