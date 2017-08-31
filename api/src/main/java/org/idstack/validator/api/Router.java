@@ -20,19 +20,19 @@ public class Router {
 
     public final String src = getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
 
-    public boolean saveBasicConfiguration(String json) {
+    public String saveBasicConfiguration(String json) {
         return FeatureImpl.getFactory().saveBasicConfiguration(src, json);
     }
 
-    public boolean saveDocumentConfiguration(String json) {
+    public String saveDocumentConfiguration(String json) {
         return FeatureImpl.getFactory().saveDocumentConfiguration(src, json);
     }
 
-    public boolean saveWhiteListConfiguration(String json) {
+    public String saveWhiteListConfiguration(String json) {
         return FeatureImpl.getFactory().saveWhiteListConfiguration(src, json);
     }
 
-    public boolean saveBlackListConfiguration(String json) {
+    public String saveBlackListConfiguration(String json) {
         return FeatureImpl.getFactory().saveBlackListConfiguration(src, json);
     }
 
@@ -57,7 +57,7 @@ public class Router {
         return FeatureImpl.getFactory().getConfiguration(src, property);
     }
 
-    public boolean saveCertificate(String category, MultipartFile certificate, String password) {
+    public String saveCertificate(String category, MultipartFile certificate, String password) {
         String src = null;
         String type = null;
         boolean flag = false;
@@ -80,7 +80,7 @@ public class Router {
 
         try {
             certificate.transferTo(file);
-            return true;
+            return Constant.Status.OK;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

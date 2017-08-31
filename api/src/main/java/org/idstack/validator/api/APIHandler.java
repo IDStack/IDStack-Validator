@@ -33,25 +33,25 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/saveconfig/basic", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean saveBasicConfiguration(@PathVariable("version") String version, @RequestBody String json) {
+    public String saveBasicConfiguration(@PathVariable("version") String version, @RequestBody String json) {
         return router.saveBasicConfiguration(json);
     }
 
     @RequestMapping(value = "/{version}/saveconfig/document", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean saveDocumentConfiguration(@PathVariable("version") String version, @RequestBody String json) {
+    public String saveDocumentConfiguration(@PathVariable("version") String version, @RequestBody String json) {
         return router.saveDocumentConfiguration(json);
     }
 
     @RequestMapping(value = "/{version}/saveconfig/whitelist", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean saveWhiteListConfiguration(@PathVariable("version") String version, @RequestBody String json) {
+    public String saveWhiteListConfiguration(@PathVariable("version") String version, @RequestBody String json) {
         return router.saveWhiteListConfiguration(json);
     }
 
     @RequestMapping(value = "/{version}/saveconfig/blacklist", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public boolean saveBlackListConfiguration(@PathVariable("version") String version, @RequestBody String json) {
+    public String saveBlackListConfiguration(@PathVariable("version") String version, @RequestBody String json) {
         return router.saveBlackListConfiguration(json);
     }
 
@@ -63,7 +63,7 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/savepubcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public boolean savePublicCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate) {
+    public String savePublicCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate) {
         return router.saveCertificate(Constant.GlobalAttribute.PUB_CERTIFICATE, certificate, null);
     }
 
@@ -75,7 +75,7 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/savepvtcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public boolean savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate, @RequestParam(value = "password") String password) {
+    public String savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate, @RequestParam(value = "password") String password) {
         return router.saveCertificate(Constant.GlobalAttribute.PVT_CERTIFICATE, certificate, password);
     }
 }
