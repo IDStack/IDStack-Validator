@@ -25,12 +25,6 @@ public class APIHandler {
         httpServletResponse.sendRedirect("http://idstack.one/validator");
     }
 
-    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String signDocument(@PathVariable("version") String version, @RequestBody String json) {
-        return router.signDocument(json);
-    }
-
     @RequestMapping(value = "/{version}/saveconfig/basic", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String saveBasicConfiguration(@PathVariable("version") String version, @RequestBody String json) {
@@ -77,5 +71,11 @@ public class APIHandler {
     @ResponseBody
     public String savePrivateCertificate(@PathVariable("version") String version, @RequestParam(value = "cert") final MultipartFile certificate, @RequestParam(value = "password") String password) {
         return router.saveCertificate(Constant.GlobalAttribute.PVT_CERTIFICATE, certificate, password);
+    }
+
+    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String signDocument(@PathVariable("version") String version, @RequestBody String json) {
+        return router.signDocument(json);
     }
 }
