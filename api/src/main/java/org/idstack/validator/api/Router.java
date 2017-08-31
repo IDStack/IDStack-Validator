@@ -2,10 +2,15 @@ package org.idstack.validator.api;
 
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
+import org.idstack.feature.Parser;
+import org.idstack.feature.document.Document;
+import org.idstack.feature.document.Validator;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -23,27 +28,48 @@ public class Router {
     public final String pubCertType = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
 
     public String signDocument(String json) {
-        String output = FeatureImpl.getFactory().signDocument(configFilePath, json);
-        if (output.equals(Constant.Status.OK)) {
-            // TODO
-            // call sign method(document, isContentSignable, urlList, getPrivateCertificate(), getPassword())
-            // sign method should sign only the urlList available in the JSON
+
+        Document document = Parser.parseDocumentJson(json);
+
+        ArrayList<String> urlList = new ArrayList<>();
+        urlList.add(document.getExtractor().getSignature().getUrl());
+        for (Validator validator : document.getValidators()) {
+            urlList.add(validator.getSignature().getUrl());
         }
-        return output;
-    }
 
-    private String getPrivateCertificate() {
-        String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
-        String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
-        return src + uuid + type;
-    }
+        Properties whitelist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME, Constant.ALL);
+        Properties blacklist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME, Constant.ALL);
+        boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
+        boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
-    private String getPassword() {
-        String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
-        String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
-        String uuid = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
-        return src + uuid + type;
+        if (!isBlackListed) {
+            String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
+            boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
+            boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
+            boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
+
+            if (isAutomaticProcessable) {
+                // TODO : improve this by checking 'issuer in the validators list'
+                if (isExtractorIssuer)
+                    if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
+                        return "Extractor should be the issuer";
+
+                if (!isContentSignable && !isWhiteListed)
+                    return "Nothing to be signed";
+
+                boolean flag = urlList.retainAll(whitelist.values());
+                if (flag) {
+                    // TODO
+                    // call sign method(document, isContentSignable, urlList, getPrivateCertificate(), getPassword())
+                    // sign method should sign only the urlList available in the JSON
+                }
+                return Constant.Status.OK;
+            }
+
+            return "Wait";
+        }
+
+        throw new IllegalArgumentException("One or more signatures are blacklisted");
     }
 
     protected String getProperty(String property) {
