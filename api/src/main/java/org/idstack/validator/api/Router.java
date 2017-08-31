@@ -2,10 +2,7 @@ package org.idstack.validator.api;
 
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,76 +16,11 @@ import java.util.Properties;
 public class Router {
 
     public final String configFilePath = getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-
-    public String saveBasicConfiguration(String json) {
-        return FeatureImpl.getFactory().saveBasicConfiguration(configFilePath, json);
-    }
-
-    public String saveDocumentConfiguration(String json) {
-        return FeatureImpl.getFactory().saveDocumentConfiguration(configFilePath, json);
-    }
-
-    public String saveWhiteListConfiguration(String json) {
-        return FeatureImpl.getFactory().saveWhiteListConfiguration(configFilePath, json);
-    }
-
-    public String saveBlackListConfiguration(String json) {
-        return FeatureImpl.getFactory().saveBlackListConfiguration(configFilePath, json);
-    }
-
-    public Object getConfiguration(String type, String property) {
-        String src = null;
-        switch (type) {
-            case Constant.GlobalAttribute.BASIC_CONFIG:
-                src = Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME;
-                break;
-            case Constant.GlobalAttribute.DOCUMENT_CONFIG:
-                src = Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME;
-                break;
-            case Constant.GlobalAttribute.WHITELIST_CONFIG:
-                src = Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME;
-                break;
-            case Constant.GlobalAttribute.BLACKLIST_CONFIG:
-                src = Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME;
-                break;
-            default:
-                break;
-        }
-        return FeatureImpl.getFactory().getConfiguration(configFilePath + src, property);
-    }
-
-    public String saveCertificate(String category, MultipartFile certificate, String password) {
-        String src = null;
-        String type = null;
-        boolean flag = false;
-
-        switch (category) {
-            case Constant.GlobalAttribute.PUB_CERTIFICATE:
-                src = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
-                type = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
-                break;
-            case Constant.GlobalAttribute.PVT_CERTIFICATE:
-                src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
-                type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-                flag = true;
-                break;
-            default:
-                break;
-        }
-
-        File file = FeatureImpl.getFactory().saveCertificate(configFilePath, src, type, flag, password, getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
-
-        try {
-            certificate.transferTo(file);
-            return Constant.Status.OK;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public FileSystemResource getPublicCertificate(String uuid) {
-        return new FileSystemResource(new File(getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH) + uuid + getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE)));
-    }
+    public final String pvtCertFilePath = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+    public final String pvtCertType = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+    public final String pvtCertPassword = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD);
+    public final String pubCertFilePath = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+    public final String pubCertType = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
 
     public String signDocument(String json) {
         String output = FeatureImpl.getFactory().signDocument(configFilePath, json);
@@ -103,18 +35,18 @@ public class Router {
     private String getPrivateCertificate() {
         String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
         String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-        String uuid = (String) getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
         return src + uuid + type;
     }
 
     private String getPassword() {
         String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
         String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
-        String uuid = (String) getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
+        String uuid = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
         return src + uuid + type;
     }
 
-    private String getProperty(String property) {
+    protected String getProperty(String property) {
         Properties prop = new Properties();
         InputStream input = null;
         try {
@@ -131,6 +63,21 @@ public class Router {
                     throw new RuntimeException(e);
                 }
             }
+        }
+    }
+
+    protected String getConfigFileName(String type) {
+        switch (type) {
+            case Constant.GlobalAttribute.BASIC_CONFIG:
+                return Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME;
+            case Constant.GlobalAttribute.DOCUMENT_CONFIG:
+                return Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME;
+            case Constant.GlobalAttribute.WHITELIST_CONFIG:
+                return Constant.GlobalAttribute.WHITELIST_CONFIG_FILE_NAME;
+            case Constant.GlobalAttribute.BLACKLIST_CONFIG:
+                return Constant.GlobalAttribute.BLACKLIST_CONFIG_FILE_NAME;
+            default:
+                return null;
         }
     }
 }
