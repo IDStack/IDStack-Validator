@@ -6,7 +6,10 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * @author Chanaka Lakmal
@@ -15,20 +18,22 @@ import java.io.IOException;
  */
 public class Router {
 
+    public final String src = getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
+
     public boolean saveBasicConfiguration(String json) {
-        return FeatureImpl.getFactory().saveBasicConfiguration(json);
+        return FeatureImpl.getFactory().saveBasicConfiguration(src, json);
     }
 
     public boolean saveDocumentConfiguration(String json) {
-        return FeatureImpl.getFactory().saveDocumentConfiguration(json);
+        return FeatureImpl.getFactory().saveDocumentConfiguration(src, json);
     }
 
     public boolean saveWhiteListConfiguration(String json) {
-        return FeatureImpl.getFactory().saveWhiteListConfiguration(json);
+        return FeatureImpl.getFactory().saveWhiteListConfiguration(src, json);
     }
 
     public boolean saveBlackListConfiguration(String json) {
-        return FeatureImpl.getFactory().saveBlackListConfiguration(json);
+        return FeatureImpl.getFactory().saveBlackListConfiguration(src, json);
     }
 
     public Object getConfiguration(String type, String property) {
@@ -53,7 +58,26 @@ public class Router {
     }
 
     public boolean saveCertificate(String category, MultipartFile certificate, String password) {
-        File file = FeatureImpl.getFactory().saveCertificate(category, password);
+        String src = null;
+        String type = null;
+        boolean flag = false;
+
+        switch (category) {
+            case Constant.GlobalAttribute.PUB_CERTIFICATE:
+                src = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+                type = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+                break;
+            case Constant.GlobalAttribute.PVT_CERTIFICATE:
+                src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+                type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+                flag = true;
+                break;
+            default:
+                break;
+        }
+
+        File file = FeatureImpl.getFactory().saveCertificate(src, type, flag, password, getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE));
+
         try {
             certificate.transferTo(file);
             return true;
@@ -63,11 +87,50 @@ public class Router {
     }
 
     public FileSystemResource getPublicCertificate(String uuid) {
-        return new FileSystemResource(new File(FeatureImpl.getFactory().getPublicCertificate(uuid)));
+        return new FileSystemResource(new File(getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH) + getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE) + uuid));
     }
 
-
     public String signDocument(String json) {
-        return FeatureImpl.getFactory().signDocument(json);
+        String output = FeatureImpl.getFactory().signDocument(json);
+        if (output.equals(Constant.Status.OK)) {
+            // TODO
+            // call sign method(document, isContentSignable, urlList, getPrivateCertificate(), getPassword())
+            // sign method should sign only the urlList available in the JSON
+        }
+        return output;
+    }
+
+    private String getPrivateCertificate() {
+        String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+        String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+        String uuid = (String) getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
+        return src + uuid + type;
+    }
+
+    private String getPassword() {
+        String src = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+        String type = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
+        String uuid = (String) getConfiguration(Constant.GlobalAttribute.BASIC_CONFIG_FILE_NAME, Constant.UUID);
+        return src + uuid + type;
+    }
+
+    private String getProperty(String property) {
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            input = new FileInputStream(getClass().getClassLoader().getResource(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME).getFile());
+            prop.load(input);
+            return prop.getProperty(property);
+        } catch (IOException io) {
+            throw new RuntimeException(io);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }
