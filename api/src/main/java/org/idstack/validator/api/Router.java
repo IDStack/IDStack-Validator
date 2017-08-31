@@ -1,7 +1,7 @@
 package org.idstack.validator.api;
 
-import org.idstack.validator.feature.Constant;
-import org.idstack.validator.feature.FeatureImpl;
+import org.idstack.feature.Constant;
+import org.idstack.feature.FeatureImpl;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
 

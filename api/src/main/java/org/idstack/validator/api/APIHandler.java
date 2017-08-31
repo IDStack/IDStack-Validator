@@ -1,6 +1,6 @@
 package org.idstack.validator.api;
 
-import org.idstack.validator.feature.Constant;
+import org.idstack.feature.Constant;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

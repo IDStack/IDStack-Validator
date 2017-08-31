@@ -12,7 +12,6 @@
     <modules>
         <module>api</module>
         <module>validator</module>
-        <module>feature</module>
     </modules>
 
     <dependencies>

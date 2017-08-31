@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>org.idstack</groupId>
-            <artifactId>feature</artifactId>
+            <artifactId>idstack-feature</artifactId>
             <version>${idstack.version}</version>
         </dependency>
         <dependency>
