@@ -16,6 +16,7 @@ import org.idstack.feature.document.Document;
 import org.idstack.feature.document.Signature;
 import org.idstack.feature.document.Validator;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.*;
@@ -35,13 +36,17 @@ import java.util.UUID;
 public class JsonSigner {
 
     public static final String SIGNATUREALGO = "SHA256withRSA";
-    public static final String PKCS12FILE = "BuddhikaWijebandara.pfx";
-    public static final char[] PKCS12PASSWORD = "abc123".toCharArray();
+    public static String PKCS12FILE;
+    public static char[] PKCS12PASSWORD;
     public static final String PUBLICCERURL = "idstack/public_certificates/BuddhikaWijebandara.cer";
-
 
     private Parser jsonParser = new Parser();
     private SignPreProcessor signPreProcessor = new SignPreProcessor();
+
+    public JsonSigner(String pvtCertificate, String password){
+        this.PKCS12FILE = pvtCertificate;
+        this.PKCS12PASSWORD = password.toCharArray();
+    }
 
     public String signJson(String jsonString, boolean signContent, ArrayList<String> signList) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, CMSException, IOException, CloneNotSupportedException, NoSuchProviderException {
 
@@ -85,7 +90,7 @@ public class JsonSigner {
 
     private KeyStore loadKeyStore(BouncyCastleProvider provider) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
         KeyStore ks = KeyStore.getInstance("PKCS12", provider.getName());
-        ks.load(new FileInputStream(getClass().getClassLoader().getResource(PKCS12FILE).getFile()), PKCS12PASSWORD);
+        ks.load(new FileInputStream(new File(PKCS12FILE)), PKCS12PASSWORD);
         return ks;
     }
 

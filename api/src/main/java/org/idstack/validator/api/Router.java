@@ -1,14 +1,22 @@
 package org.idstack.validator.api;
 
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.Validator;
+import org.idstack.validator.JsonSigner;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
@@ -23,7 +31,7 @@ public class Router {
     public final String configFilePath = getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
     public final String pvtCertFilePath = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
     public final String pvtCertType = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-    public final String pvtCertPassword = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD);
+    public final String pvtCertPasswordType = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
     public final String pubCertFilePath = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
     public final String pubCertType = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
 
@@ -57,13 +65,14 @@ public class Router {
                 if (!isContentSignable && !isWhiteListed)
                     return "Nothing to be signed";
 
-                boolean flag = urlList.retainAll(whitelist.values());
-                if (flag) {
-                    // TODO
-                    // call sign method(document, isContentSignable, urlList, getPrivateCertificate(), getPassword())
-                    // sign method should sign only the urlList available in the JSON
+                urlList.retainAll(whitelist.values());
+
+                try {
+                    JsonSigner jsonSigner = new JsonSigner(FeatureImpl.getFactory().getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), FeatureImpl.getFactory().getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType));
+                    return jsonSigner.signJson(json, isContentSignable, urlList);
+                } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
+                    throw new RuntimeException(e);
                 }
-                return Constant.Status.OK;
             }
 
             return "Wait";
