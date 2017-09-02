@@ -39,6 +39,25 @@ public class Router {
 
         Document document = Parser.parseDocumentJson(json);
 
+        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
+
+        if (documentConfig == null)
+            return "Cannot process document type : " + document.getMetaData().getDocumentType();
+
+        boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
+
+        if (!isAutomaticProcessable)
+            return "Wait";
+
+        boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
+
+        if (isExtractorIssuer)
+            if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
+                return "Extractor should be the issuer";
+        // TODO : improve this by checking 'issuer in the validators list'
+
+        boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
+
         ArrayList<String> urlList = new ArrayList<>();
         urlList.add(document.getExtractor().getSignature().getUrl());
         for (Validator validator : document.getValidators()) {
@@ -50,37 +69,22 @@ public class Router {
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
         boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
-        if (!isBlackListed) {
-            String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
-            boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
-            boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
-            boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
+        if (isBlackListed)
+            return "One or more signatures are blacklisted";
 
-            if (isAutomaticProcessable) {
-                // TODO : improve this by checking 'issuer in the validators list'
-                if (isExtractorIssuer)
-                    if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
-                        return "Extractor should be the issuer";
+        if (!isContentSignable && !isWhiteListed)
+            return "Nothing to be signed";
 
-                if (!isContentSignable && !isWhiteListed)
-                    return "Nothing to be signed";
+        urlList.retainAll(whitelist.values());
 
-                urlList.retainAll(whitelist.values());
-
-                try {
-                    JsonSigner jsonSigner = new JsonSigner(FeatureImpl.getFactory().getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
-                            FeatureImpl.getFactory().getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
-                            FeatureImpl.getFactory().getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
-                    return jsonSigner.signJson(json, isContentSignable, urlList);
-                } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            return "Wait";
+        try {
+            JsonSigner jsonSigner = new JsonSigner(FeatureImpl.getFactory().getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
+                    FeatureImpl.getFactory().getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
+                    FeatureImpl.getFactory().getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
+            return jsonSigner.signJson(json, isContentSignable, urlList);
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
+            throw new RuntimeException(e);
         }
-
-        throw new IllegalArgumentException("One or more signatures are blacklisted");
     }
 
     protected String getProperty(String property) {
