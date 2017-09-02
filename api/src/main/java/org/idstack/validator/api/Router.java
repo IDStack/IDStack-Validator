@@ -10,8 +10,8 @@ import org.idstack.feature.document.Validator;
 import org.idstack.validator.JsonSigner;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -26,14 +26,15 @@ import java.util.Properties;
  * @date 23/8/2017
  * @since 1.0
  */
+
 public class Router {
 
-    public final String configFilePath = getProperty(Constant.GlobalAttribute.CONFIG_FILE_PATH);
-    public final String pvtCertFilePath = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
-    public final String pvtCertType = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
-    public final String pvtCertPasswordType = getProperty(Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
-    public final String pubCertFilePath = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
-    public final String pubCertType = getProperty(Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
+    public final String configFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.CONFIG_FILE_PATH);
+    public final String pvtCertFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
+    public final String pvtCertType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
+    public final String pvtCertPasswordType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PVT_CERTIFICATE_PASSWORD_TYPE);
+    public final String pubCertFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PUB_CERTIFICATE_FILE_PATH);
+    public final String pubCertType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PUB_CERTIFICATE_TYPE);
 
     public String signDocument(String json) {
 
@@ -87,23 +88,11 @@ public class Router {
         }
     }
 
-    protected String getProperty(String property) {
-        Properties prop = new Properties();
-        InputStream input = null;
+    private FileInputStream getPropertiesFile() {
         try {
-            input = new FileInputStream(getClass().getClassLoader().getResource(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME).getFile());
-            prop.load(input);
-            return prop.getProperty(property);
-        } catch (IOException io) {
-            throw new RuntimeException(io);
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            return new FileInputStream(getClass().getClassLoader().getResource(Constant.GlobalAttribute.SYSTEM_PROPERTIES_FILE_NAME).getFile());
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
