@@ -8,6 +8,7 @@ import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.Validator;
 import org.idstack.validator.JsonSigner;
+import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,6 +28,7 @@ import java.util.Properties;
  * @since 1.0
  */
 
+@Component
 public class Router {
 
     public final String configFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.CONFIG_FILE_PATH);

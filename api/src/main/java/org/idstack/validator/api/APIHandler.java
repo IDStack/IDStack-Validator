@@ -1,6 +1,7 @@
 package org.idstack.validator.api;
 
 import org.idstack.feature.FeatureImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +18,8 @@ import java.io.IOException;
 @RestController
 public class APIHandler {
 
-    Router router = new Router();
+    @Autowired
+    Router router;
 
     @RequestMapping("/")
     public void root(HttpServletResponse httpServletResponse) throws IOException {
