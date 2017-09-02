@@ -68,7 +68,9 @@ public class Router {
                 urlList.retainAll(whitelist.values());
 
                 try {
-                    JsonSigner jsonSigner = new JsonSigner(FeatureImpl.getFactory().getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), FeatureImpl.getFactory().getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType));
+                    JsonSigner jsonSigner = new JsonSigner(FeatureImpl.getFactory().getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
+                            FeatureImpl.getFactory().getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
+                            FeatureImpl.getFactory().getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
                     return jsonSigner.signJson(json, isContentSignable, urlList);
                 } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
                     throw new RuntimeException(e);

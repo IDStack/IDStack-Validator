@@ -1,7 +1,6 @@
 package org.idstack.validator.api;
 
 import org.idstack.feature.FeatureImpl;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,8 +62,8 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/getpubcert/{uuid}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
-    public FileSystemResource getPublicCertificate(@PathVariable("version") String version, @PathVariable("uuid") String uuid) {
-        return FeatureImpl.getFactory().getPublicCertificate(router.pubCertFilePath, router.pubCertType, uuid);
+    public String getPublicCertificate(@PathVariable("version") String version) {
+        return FeatureImpl.getFactory().getPublicCertificateURL(router.configFilePath, router.pubCertFilePath, router.pubCertType);
     }
 
     @RequestMapping(value = "/{version}/savepvtcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
