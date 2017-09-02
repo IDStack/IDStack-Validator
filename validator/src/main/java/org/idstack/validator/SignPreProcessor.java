@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 public class SignPreProcessor {
 
+    @SuppressWarnings("Duplicates")
     public Document getSignOnlyDigitizedVersion(Document wholeVersion, boolean signContent, ArrayList<String> signList) throws CloneNotSupportedException {
         //removing content if it is not supposed to be signed
         if (!signContent) {

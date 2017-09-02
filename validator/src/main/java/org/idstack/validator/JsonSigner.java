@@ -38,14 +38,15 @@ public class JsonSigner {
     public static final String SIGNATUREALGO = "SHA256withRSA";
     public static String PKCS12FILE;
     public static char[] PKCS12PASSWORD;
-    public static final String PUBLICCERURL = "idstack/public_certificates/BuddhikaWijebandara.cer";
+    public static String PUBLICCERURL;
 
     private Parser jsonParser = new Parser();
     private SignPreProcessor signPreProcessor = new SignPreProcessor();
 
-    public JsonSigner(String pvtCertificate, String password){
-        this.PKCS12FILE = pvtCertificate;
+    public JsonSigner(String privateCertFilePath, String password, String publicCertURL){
+        this.PKCS12FILE = privateCertFilePath;
         this.PKCS12PASSWORD = password.toCharArray();
+        this.PUBLICCERURL = publicCertURL;
     }
 
     public String signJson(String jsonString, boolean signContent, ArrayList<String> signList) throws CertificateException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, CMSException, IOException, CloneNotSupportedException, NoSuchProviderException {

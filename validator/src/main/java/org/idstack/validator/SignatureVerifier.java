@@ -8,6 +8,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.security.cert.Certificate;
@@ -25,9 +26,14 @@ import java.util.HashMap;
 
 public class SignatureVerifier {
 
-    public static final String PUBLICCCER = "BuddhikaWijebandara.cer";
+    public static String PUBLICCERURL;
+
     private Parser jsonParser = new Parser();
     private VerificationPreProcessor verificationPreProcessor = new VerificationPreProcessor();
+
+    public SignatureVerifier(String publicCertURL) {
+        this.PUBLICCERURL = publicCertURL;
+    }
 
     public ArrayList<Boolean> verifyJson(String jsonString) throws CMSException, OperatorCreationException, FileNotFoundException, CertificateException {
         Document originalDigitalJsonSigned = jsonParser.parseDocumentJson(jsonString);
@@ -64,7 +70,7 @@ public class SignatureVerifier {
     }
 
     private Certificate getPublicCertificate() throws FileNotFoundException, CertificateException {
-        FileInputStream fis = new FileInputStream(getClass().getClassLoader().getResource(PUBLICCCER).getFile());
+        FileInputStream fis = new FileInputStream(new File(PUBLICCERURL));
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         Certificate cert = cf.generateCertificates(fis).iterator().next();
         return cert;

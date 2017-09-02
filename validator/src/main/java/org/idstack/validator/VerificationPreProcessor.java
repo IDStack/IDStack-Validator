@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 public class VerificationPreProcessor {
 
+    @SuppressWarnings("Duplicates")
     public Document getSignedDigitizedVersion(Document wholeVersion, int signatureID) {
         //remove content if content is not signed
         if (!wholeVersion.getValidators().get(signatureID).getSignedAttributes()) {
