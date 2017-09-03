@@ -47,7 +47,7 @@ public class SignatureVerifier {
         return verifiedArray;
     }
 
-
+    @SuppressWarnings("Duplicates")
     private boolean verify(Document originalDigitalJsonSigned, Document digitalJsonSigned, int signatureIndex) throws OperatorCreationException, FileNotFoundException, CertificateException {
         String toVerify = new Gson().toJson(digitalJsonSigned);
 
@@ -76,6 +76,7 @@ public class SignatureVerifier {
         return cert;
     }
 
+    @SuppressWarnings("Duplicates")
     private HashMap<String, String> getOwnerDetails() throws FileNotFoundException, CertificateException {
         HashMap<String, String> ownerDetails = new HashMap<>();
         Certificate publicCertificate = getPublicCertificate();

@@ -37,6 +37,7 @@ public class ExtractorVerifier {
         return verify(digitizedDocument);
     }
 
+    @SuppressWarnings("Duplicates")
     private boolean verify(Document digitalJsonSigned) throws FileNotFoundException, CertificateException, OperatorCreationException {
         String toVerify = new Gson().toJson(digitalJsonSigned.getContent());
 
@@ -45,7 +46,6 @@ public class ExtractorVerifier {
         boolean result = false;
         try {
             CMSSignedData s = new CMSSignedData(new CMSProcessableByteArray(toVerify.getBytes()), signedByte);
-
             SignerInformationStore signers = s.getSignerInfos();
             SignerInformation signerInfo = (SignerInformation) signers.getSigners().iterator().next();
             result = signerInfo.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(this.getPublicCertificate().getPublicKey()));
@@ -65,6 +65,7 @@ public class ExtractorVerifier {
         return cert;
     }
 
+    @SuppressWarnings("Duplicates")
     private HashMap<String, String> getOwnerDetails() throws FileNotFoundException, CertificateException {
         HashMap<String, String> ownerDetails = new HashMap<>();
         Certificate publicCertificate = getPublicCertificate();

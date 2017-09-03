@@ -95,6 +95,7 @@ public class JsonSigner {
         return ks;
     }
 
+    @SuppressWarnings("Duplicates")
     private CMSSignedDataGenerator setUpProvider(final KeyStore keyStore) throws KeyStoreException, CertificateEncodingException,
             UnrecoverableKeyException, NoSuchAlgorithmException, OperatorCreationException, CMSException {
         String alias = keyStore.aliases().nextElement();
