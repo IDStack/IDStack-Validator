@@ -41,7 +41,6 @@ public class Router {
     public String signDocument(String json) {
 
         Document document = Parser.parseDocumentJson(json);
-
         String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.GlobalAttribute.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
 
         if (documentConfig == null)
