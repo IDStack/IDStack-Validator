@@ -66,7 +66,7 @@ public class JsonSigner {
 
         String jsonStringToSign = new Gson().toJson(signOnlyDigitalJson);
 
-        //Setting BouncyCastle as the security provoder
+        //Setting BouncyCastle as the security provider
         BouncyCastleProvider provider = new BouncyCastleProvider();
         Security.addProvider(provider);
 
