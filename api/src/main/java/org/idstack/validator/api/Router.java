@@ -31,6 +31,7 @@ import java.util.Properties;
 @Component
 public class Router {
 
+    public final String apiKey = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.API_KEY);
     public final String configFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.CONFIG_FILE_PATH);
     public final String pvtCertFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PVT_CERTIFICATE_FILE_PATH);
     public final String pvtCertType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.GlobalAttribute.PVT_CERTIFICATE_TYPE);
