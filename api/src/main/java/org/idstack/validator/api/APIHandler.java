@@ -59,10 +59,10 @@ public class APIHandler {
         return FeatureImpl.getFactory().saveBlackListConfiguration(router.configFilePath, json);
     }
 
-    @RequestMapping(value = "/{version}/getconfig/{type}/{property}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{version}/{apikey}/getconfig/{type}/{property}", method = RequestMethod.GET)
     @ResponseBody
     public Object getConfigurationFile(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") String property) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!FeatureImpl.getFactory().validateRequest(version, router.apiKey, apikey))
             return Constant.Status.ERROR_REQUEST;
         return FeatureImpl.getFactory().getConfiguration(router.configFilePath, router.getConfigFileName(type), property);
     }
