@@ -59,7 +59,7 @@ public class Router {
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                 return "Extractor should be the issuer";
         // TODO : improve this by checking 'issuer in the validators list'
-
+        // TODO : restrict to sign by previous signer
         boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
 
         ArrayList<String> urlList = new ArrayList<>();
