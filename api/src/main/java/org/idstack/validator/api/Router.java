@@ -20,6 +20,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -42,7 +43,7 @@ public class Router {
     public String signDocument(String json) {
 
         Document document = Parser.parseDocumentJson(json);
-        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, document.getMetaData().getDocumentType());
+        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
 
         if (documentConfig == null)
             return "Cannot process document type : " + document.getMetaData().getDocumentType();
@@ -67,8 +68,8 @@ public class Router {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME, Constant.ALL);
-        Properties blacklist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME, Constant.ALL);
+        Properties whitelist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME, null);
+        Properties blacklist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME, null);
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
         boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
