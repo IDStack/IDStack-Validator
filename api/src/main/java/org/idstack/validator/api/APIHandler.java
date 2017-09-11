@@ -61,7 +61,7 @@ public class APIHandler {
 
     @RequestMapping(value = "/{version}/{apikey}/getconfig/{type}/{property}", method = RequestMethod.GET)
     @ResponseBody
-    public Object getConfigurationFile(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") String property) {
+    public String getConfigurationFile(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") String property) {
         if (!FeatureImpl.getFactory().validateRequest(version, router.apiKey, apikey))
             return Constant.Status.ERROR_REQUEST;
         return FeatureImpl.getFactory().getConfiguration(router.configFilePath, router.getConfigFileName(type), property);
