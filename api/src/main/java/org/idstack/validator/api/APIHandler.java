@@ -94,4 +94,14 @@ public class APIHandler {
             return Constant.Status.STATUS_ERROR_VERSION;
         return router.signDocument(json);
     }
+
+    @RequestMapping(value = "/{version}/{apikey}/getdoctypes", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String getDocumentTypeList(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {
+        if (!FeatureImpl.getFactory().validateRequest(version))
+            return Constant.Status.STATUS_ERROR_VERSION;
+        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+            return Constant.Status.STATUS_ERROR_API_KEY;
+        return FeatureImpl.getFactory().getDocumentList();
+    }
 }
