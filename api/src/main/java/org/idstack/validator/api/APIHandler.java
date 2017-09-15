@@ -102,6 +102,6 @@ public class APIHandler {
             return Constant.Status.STATUS_ERROR_VERSION;
         if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().getDocumentList();
+        return FeatureImpl.getFactory().getDocumentTypes();
     }
 }
