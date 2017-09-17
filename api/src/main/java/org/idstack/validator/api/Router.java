@@ -68,8 +68,8 @@ public class Router {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME, null);
-        Properties blacklist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME, null);
+        Properties whitelist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME, Optional.empty());
+        Properties blacklist = (Properties) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME, Optional.empty());
         boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
         boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
 
