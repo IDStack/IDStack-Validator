@@ -43,23 +43,7 @@ public class Router {
     public final String pubCertType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.Configuration.PUB_CERTIFICATE_TYPE);
     public final String storeFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.Configuration.STORE_FILE_PATH);
 
-    public String signDocument(String json, MultipartFile pdf, String email) throws IOException {
-
-        Document document = Parser.parseDocumentJson(json);
-        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
-
-        if (documentConfig == null)
-            return "Cannot process document type : " + document.getMetaData().getDocumentType();
-
-        boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
-
-        if (!isAutomaticProcessable) {
-            JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
-            JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
-            MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
-            FeatureImpl.getFactory().storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString());
-            return "Wait";
-        }
+    private String signDocument(String json, MultipartFile pdf, Document document, String documentConfig) {
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
 
@@ -98,6 +82,28 @@ public class Router {
         } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String signDocumentAutomatically(String json, MultipartFile pdf, String email) throws IOException {
+        Document document = Parser.parseDocumentJson(json);
+        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
+        if (documentConfig == null)
+            return "Cannot process document type : " + document.getMetaData().getDocumentType();
+        boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
+        if (!isAutomaticProcessable) {
+            JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
+            JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
+            MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
+            FeatureImpl.getFactory().storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString());
+            return "Wait";
+        }
+        return signDocument(json, pdf, document, documentConfig);
+    }
+
+    public String signDocumentManually(String json, MultipartFile pdf) throws IOException {
+        Document document = Parser.parseDocumentJson(json);
+        String documentConfig = (String) FeatureImpl.getFactory().getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
+        return signDocument(json, pdf, document, documentConfig);
     }
 
     private FileInputStream getPropertiesFile() {

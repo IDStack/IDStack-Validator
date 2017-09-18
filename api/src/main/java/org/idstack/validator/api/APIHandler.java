@@ -92,10 +92,18 @@ public class APIHandler {
     //TODO : return both signed MR + signed PDF
     @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String signDocument(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException{
+    public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
         if (!FeatureImpl.getFactory().validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        return router.signDocument(json, pdf, email);
+        return router.signDocumentAutomatically(json, pdf, email);
+    }
+
+    @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
+        if (!FeatureImpl.getFactory().validateRequest(version))
+            return Constant.Status.STATUS_ERROR_VERSION;
+        return router.signDocumentManually(json, pdf);
     }
 
     @RequestMapping(value = "/{version}/store", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -106,8 +114,6 @@ public class APIHandler {
         return FeatureImpl.getFactory().storeDocuments(pdf.getBytes(), router.storeFilePath, email, documentType, Constant.FileExtenstion.PDF, UUID.randomUUID().toString());
     }
 
-    //TODO : add method for sign by the validator
-    //TODO : add method for get the doc store
     //TODO : pass this to lambda function
     @RequestMapping(value = "/{version}/{apikey}/getdoctypes", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -117,5 +123,13 @@ public class APIHandler {
         if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
         return FeatureImpl.getFactory().getDocumentTypes();
+    }
+
+    @RequestMapping(value = "/{version}/{apikey}/getdocstore", method = RequestMethod.GET)
+    @ResponseBody
+    public String getStoredDocuments(@PathVariable("version") String version) {
+        if (!FeatureImpl.getFactory().validateRequest(version))
+            return Constant.Status.STATUS_ERROR_VERSION;
+        return FeatureImpl.getFactory().getDocumentStore(router.storeFilePath);
     }
 }
