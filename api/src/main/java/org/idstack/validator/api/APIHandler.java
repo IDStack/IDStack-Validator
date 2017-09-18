@@ -97,6 +97,7 @@ public class APIHandler {
         return router.signDocumentAutomatically(json, pdf, email);
     }
 
+    //TODO : return both signed MR + signed PDF
     @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {

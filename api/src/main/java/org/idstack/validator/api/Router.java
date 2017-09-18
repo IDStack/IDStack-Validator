@@ -43,6 +43,8 @@ public class Router {
     public final String pubCertType = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.Configuration.PUB_CERTIFICATE_TYPE);
     public final String storeFilePath = FeatureImpl.getFactory().getProperty(getPropertiesFile(), Constant.Configuration.STORE_FILE_PATH);
 
+    // TODO : improve this by checking 'issuer in the validators list'
+    // TODO : restrict to sign by previous signer
     private String signDocument(String json, MultipartFile pdf, Document document, String documentConfig) {
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
@@ -50,8 +52,7 @@ public class Router {
         if (isExtractorIssuer)
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                 return "Extractor should be the issuer";
-        // TODO : improve this by checking 'issuer in the validators list'
-        // TODO : restrict to sign by previous signer
+
         boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
 
         ArrayList<String> urlList = new ArrayList<>();
