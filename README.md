@@ -15,7 +15,7 @@ Validator API for document validation with the use of digital signatures
 - Update `api/src/main/java/resources/idstack.properties` file
 
 ```
-API_KEY=8742b79d-08d7-4e1b-a4ce-27b4817348a1
+API_KEY=90620cc1-1d18-4ba1-a6cf-f8e17d351d16
 CONFIG_FILE_PATH=/usr/local/idstack/validator/
 PVT_CERTIFICATE_FILE_PATH=/usr/local/idstack/validator/cert/pvt/
 PVT_CERTIFICATE_TYPE=.pfx
