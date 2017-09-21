@@ -1,5 +1,6 @@
 package org.idstack.validator.api;
 
+import com.google.gson.Gson;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -71,9 +73,9 @@ public class APIHandler {
     @ResponseBody
     public String saveConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @RequestBody String json) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         switch (type) {
             case Constant.Configuration.BASIC_CONFIG:
                 return feature.saveBasicConfiguration(configFilePath, json);
@@ -84,7 +86,7 @@ public class APIHandler {
             case Constant.Configuration.BLACKLIST_CONFIG:
                 return feature.saveBlackListConfiguration(configFilePath, json);
             default:
-                return Constant.Status.STATUS_ERROR_PARAMETER;
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER));
         }
     }
 
@@ -101,9 +103,9 @@ public class APIHandler {
     @ResponseBody
     public String getConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") Optional<String> property) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.getConfigurationAsJson(configFilePath, router.getConfigFileName(type), property);
     }
 
@@ -119,9 +121,9 @@ public class APIHandler {
     @ResponseBody
     public String savePublicCertificate(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "cert") final MultipartFile certificate) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.savePublicCertificate(certificate, configFilePath, pubCertFilePath, pubCertType);
     }
 
@@ -135,7 +137,7 @@ public class APIHandler {
     @ResponseBody
     public String getPublicCertificate(@PathVariable("version") String version) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         return feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType);
     }
 
@@ -152,9 +154,9 @@ public class APIHandler {
     @ResponseBody
     public String savePrivateCertificate(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "cert") final MultipartFile certificate, @RequestParam(value = "password") String password) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.savePrivateCertificate(certificate, password, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType);
     }
 
@@ -175,7 +177,7 @@ public class APIHandler {
     @ResponseBody
     public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath);
     }
 
@@ -193,7 +195,7 @@ public class APIHandler {
     @ResponseBody
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         return router.signDocumentManually(feature, json, pdf, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
@@ -209,9 +211,9 @@ public class APIHandler {
     @ResponseBody
     public String getDocumentTypeList(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.getDocumentTypes();
     }
 
@@ -226,9 +228,9 @@ public class APIHandler {
     @ResponseBody
     public String getStoredDocuments(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {
         if (!feature.validateRequest(version))
-            return Constant.Status.STATUS_ERROR_VERSION;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
-            return Constant.Status.STATUS_ERROR_API_KEY;
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.getDocumentStore(storeFilePath);
     }
 }
