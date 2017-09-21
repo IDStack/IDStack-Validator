@@ -3,14 +3,14 @@ package org.idstack.validator.api;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -24,12 +24,14 @@ import java.util.Optional;
 public class APIHandler {
 
     @Autowired
-    Router router;
+    private Router router;
 
     @Autowired
     private FeatureImpl feature;
 
-    private FileInputStream inputStream;
+    @Value(value = "classpath:" + Constant.Configuration.SYSTEM_PROPERTIES_FILE_NAME)
+    private Resource resource;
+
     private String apiKey;
     private String configFilePath;
     private String pvtCertFilePath;
@@ -40,16 +42,15 @@ public class APIHandler {
     private String storeFilePath;
 
     @PostConstruct
-    void init() throws FileNotFoundException {
-        inputStream = new FileInputStream(getClass().getClassLoader().getResource(Constant.Configuration.SYSTEM_PROPERTIES_FILE_NAME).getFile());
-        apiKey = feature.getProperty(inputStream, Constant.Configuration.API_KEY);
-        configFilePath = feature.getProperty(inputStream, Constant.Configuration.CONFIG_FILE_PATH);
-        pvtCertFilePath = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_FILE_PATH);
-        pvtCertType = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_TYPE);
-        pvtCertPasswordType = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_PASSWORD_TYPE);
-        pubCertFilePath = feature.getProperty(inputStream, Constant.Configuration.PUB_CERTIFICATE_FILE_PATH);
-        pubCertType = feature.getProperty(inputStream, Constant.Configuration.PUB_CERTIFICATE_TYPE);
-        storeFilePath = feature.getProperty(inputStream, Constant.Configuration.STORE_FILE_PATH);
+    void init() throws IOException {
+        apiKey = feature.getProperty(resource.getInputStream(), Constant.Configuration.API_KEY);
+        configFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.CONFIG_FILE_PATH);
+        pvtCertFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.PVT_CERTIFICATE_FILE_PATH);
+        pvtCertType = feature.getProperty(resource.getInputStream(), Constant.Configuration.PVT_CERTIFICATE_TYPE);
+        pvtCertPasswordType = feature.getProperty(resource.getInputStream(), Constant.Configuration.PVT_CERTIFICATE_PASSWORD_TYPE);
+        pubCertFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.PUB_CERTIFICATE_FILE_PATH);
+        pubCertType = feature.getProperty(resource.getInputStream(), Constant.Configuration.PUB_CERTIFICATE_TYPE);
+        storeFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.STORE_FILE_PATH);
     }
 
     @RequestMapping(value = {"/", "/{version}", "/{version}/{apikey}"})
@@ -170,7 +171,7 @@ public class APIHandler {
      * @throws IOException if file cannot be converted into bytes
      */
     //TODO : return both signed MR + signed PDF
-    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
         if (!feature.validateRequest(version))
@@ -188,7 +189,7 @@ public class APIHandler {
      * @throws IOException if file cannot be converted into bytes
      */
     //TODO : return both signed MR + signed PDF
-    @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
         if (!feature.validateRequest(version))
