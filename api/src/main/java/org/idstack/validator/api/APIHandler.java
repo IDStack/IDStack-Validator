@@ -7,7 +7,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -22,6 +25,32 @@ public class APIHandler {
 
     @Autowired
     Router router;
+
+    @Autowired
+    private FeatureImpl feature;
+
+    private FileInputStream inputStream;
+    private String apiKey;
+    private String configFilePath;
+    private String pvtCertFilePath;
+    private String pvtCertType;
+    private String pvtCertPasswordType;
+    private String pubCertFilePath;
+    private String pubCertType;
+    private String storeFilePath;
+
+    @PostConstruct
+    void init() throws FileNotFoundException {
+        inputStream = new FileInputStream(getClass().getClassLoader().getResource(Constant.Configuration.SYSTEM_PROPERTIES_FILE_NAME).getFile());
+        apiKey = feature.getProperty(inputStream, Constant.Configuration.API_KEY);
+        configFilePath = feature.getProperty(inputStream, Constant.Configuration.CONFIG_FILE_PATH);
+        pvtCertFilePath = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_FILE_PATH);
+        pvtCertType = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_TYPE);
+        pvtCertPasswordType = feature.getProperty(inputStream, Constant.Configuration.PVT_CERTIFICATE_PASSWORD_TYPE);
+        pubCertFilePath = feature.getProperty(inputStream, Constant.Configuration.PUB_CERTIFICATE_FILE_PATH);
+        pubCertType = feature.getProperty(inputStream, Constant.Configuration.PUB_CERTIFICATE_TYPE);
+        storeFilePath = feature.getProperty(inputStream, Constant.Configuration.STORE_FILE_PATH);
+    }
 
     @RequestMapping(value = {"/", "/{version}", "/{version}/{apikey}"})
     public void root(HttpServletResponse httpServletResponse) throws IOException {
@@ -40,19 +69,19 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/saveconfig/{type}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String saveConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @RequestBody String json) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
         switch (type) {
             case Constant.Configuration.BASIC_CONFIG:
-                return FeatureImpl.getFactory().saveBasicConfiguration(router.configFilePath, json);
+                return feature.saveBasicConfiguration(configFilePath, json);
             case Constant.Configuration.DOCUMENT_CONFIG:
-                return FeatureImpl.getFactory().saveDocumentConfiguration(router.configFilePath, json);
+                return feature.saveDocumentConfiguration(configFilePath, json);
             case Constant.Configuration.WHITELIST_CONFIG:
-                return FeatureImpl.getFactory().saveWhiteListConfiguration(router.configFilePath, json);
+                return feature.saveWhiteListConfiguration(configFilePath, json);
             case Constant.Configuration.BLACKLIST_CONFIG:
-                return FeatureImpl.getFactory().saveBlackListConfiguration(router.configFilePath, json);
+                return feature.saveBlackListConfiguration(configFilePath, json);
             default:
                 return Constant.Status.STATUS_ERROR_PARAMETER;
         }
@@ -70,11 +99,11 @@ public class APIHandler {
     @RequestMapping(value = {"/{version}/{apikey}/getconfig/{type}/{property}", "/{version}/{apikey}/getconfig/{type}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String getConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") Optional<String> property) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().getConfigurationAsJson(router.configFilePath, router.getConfigFileName(type), property);
+        return feature.getConfigurationAsJson(configFilePath, router.getConfigFileName(type), property);
     }
 
     /**
@@ -88,11 +117,11 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/savepubcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public String savePublicCertificate(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "cert") final MultipartFile certificate) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().savePublicCertificate(certificate, router.configFilePath, router.pubCertFilePath, router.pubCertType);
+        return feature.savePublicCertificate(certificate, configFilePath, pubCertFilePath, pubCertType);
     }
 
     /**
@@ -104,9 +133,9 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/getpubcert", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     public String getPublicCertificate(@PathVariable("version") String version) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        return FeatureImpl.getFactory().getPublicCertificateURL(router.configFilePath, router.pubCertFilePath, router.pubCertType);
+        return feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType);
     }
 
     /**
@@ -121,11 +150,11 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/savepvtcert", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public String savePrivateCertificate(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "cert") final MultipartFile certificate, @RequestParam(value = "password") String password) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().savePrivateCertificate(certificate, password, router.configFilePath, router.pvtCertFilePath, router.pvtCertType, router.pvtCertPasswordType);
+        return feature.savePrivateCertificate(certificate, password, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType);
     }
 
     //Access by the owner
@@ -144,9 +173,9 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        return router.signDocumentAutomatically(json, pdf, email);
+        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath);
     }
 
     /**
@@ -162,9 +191,9 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        return router.signDocumentManually(json, pdf);
+        return router.signDocumentManually(feature, json, pdf, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
     /**
@@ -178,11 +207,11 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/getdoctypes", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String getDocumentTypeList(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().getDocumentTypes();
+        return feature.getDocumentTypes();
     }
 
     /**
@@ -195,10 +224,10 @@ public class APIHandler {
     @RequestMapping(value = "/{version}/{apikey}/getdocstore", method = RequestMethod.GET)
     @ResponseBody
     public String getStoredDocuments(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {
-        if (!FeatureImpl.getFactory().validateRequest(version))
+        if (!feature.validateRequest(version))
             return Constant.Status.STATUS_ERROR_VERSION;
-        if (!FeatureImpl.getFactory().validateRequest(router.apiKey, apikey))
+        if (!feature.validateRequest(apiKey, apikey))
             return Constant.Status.STATUS_ERROR_API_KEY;
-        return FeatureImpl.getFactory().getDocumentStore(router.storeFilePath);
+        return feature.getDocumentStore(storeFilePath);
     }
 }
