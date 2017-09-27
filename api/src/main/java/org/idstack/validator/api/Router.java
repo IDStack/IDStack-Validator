@@ -54,7 +54,6 @@ public class Router {
         return signDocument(feature, json, pdf, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
-    // TODO : improve this by checking 'issuer in the validators list'
     // TODO : restrict to sign by previous signer
     private String signDocument(FeatureImpl feature, String json, MultipartFile pdf, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType) {
 
