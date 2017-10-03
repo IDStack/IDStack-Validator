@@ -2,7 +2,7 @@ package org.idstack.validator.api.security;
 
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
-import org.idstack.validator.api.Router;
+import org.idstack.validator.api.controller.Router;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

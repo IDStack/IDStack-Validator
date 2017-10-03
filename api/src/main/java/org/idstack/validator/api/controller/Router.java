@@ -1,4 +1,4 @@
-package org.idstack.validator.api;
+package org.idstack.validator.api.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

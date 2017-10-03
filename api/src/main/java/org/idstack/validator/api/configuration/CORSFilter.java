@@ -1,4 +1,4 @@
-package org.idstack.validator.api;
+package org.idstack.validator.api.configuration;
 
 import org.springframework.stereotype.Component;
 

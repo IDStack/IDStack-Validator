@@ -1,4 +1,4 @@
-package org.idstack.validator.api;
+package org.idstack.validator.api.configuration;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
