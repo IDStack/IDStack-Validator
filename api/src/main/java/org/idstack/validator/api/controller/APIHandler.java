@@ -128,20 +128,6 @@ public class APIHandler {
     }
 
     /**
-     * Get public certificate of the validator
-     *
-     * @param version api version
-     * @return URL of the public certificate
-     */
-    @RequestMapping(value = "/{version}/getpubcert", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    @ResponseBody
-    public String getPublicCertificate(@PathVariable("version") String version) {
-        if (!feature.validateRequest(version))
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        return feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType);
-    }
-
-    /**
      * Save private certificate of the validator
      *
      * @param version     api version
@@ -158,27 +144,6 @@ public class APIHandler {
         if (!feature.validateRequest(apiKey, apikey))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.savePrivateCertificate(certificate, password, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType);
-    }
-
-    //Access by the owner
-
-    /**
-     * Automatically sign the received json document + pdf document and return the signed documents
-     *
-     * @param version api version
-     * @param json    json document
-     * @param pdf     pdf document
-     * @param email   email of the sender
-     * @return signed json + pdf documents
-     * @throws IOException if file cannot be converted into bytes
-     */
-    //TODO : return both signed MR + signed PDF
-    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
-        if (!feature.validateRequest(version))
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath);
     }
 
     /**
@@ -232,5 +197,40 @@ public class APIHandler {
         if (!feature.validateRequest(apiKey, apikey))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return feature.getDocumentStore(storeFilePath);
+    }
+
+    //*************************************************** PUBLIC API ***************************************************
+
+    /**
+     * Automatically sign the received json document + pdf document and return the signed documents
+     *
+     * @param version api version
+     * @param json    json document
+     * @param pdf     pdf document
+     * @param email   email of the sender
+     * @return signed json + pdf documents
+     * @throws IOException if file cannot be converted into bytes
+     */
+    //TODO : return both signed MR + signed PDF
+    @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
+        if (!feature.validateRequest(version))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath);
+    }
+
+    /**
+     * Get public certificate of the validator
+     *
+     * @param version api version
+     * @return URL of the public certificate
+     */
+    @RequestMapping(value = "/{version}/getpubcert", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String getPublicCertificate(@PathVariable("version") String version) {
+        if (!feature.validateRequest(version))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        return feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType);
     }
 }
