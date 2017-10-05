@@ -11,7 +11,10 @@ import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
+import org.idstack.feature.verification.ExtractorVerifier;
+import org.idstack.feature.verification.SignatureVerifier;
 import org.idstack.validator.JsonSigner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +34,12 @@ import java.util.*;
 
 @Component
 public class Router {
+
+    @Autowired
+    private ExtractorVerifier extractorVerifier;
+
+    @Autowired
+    private SignatureVerifier signatureVerifier;
 
     protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
@@ -84,6 +93,14 @@ public class Router {
         urlList.retainAll(whitelist.values());
 
         try {
+            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json);
+            if (!isValidExtractor)
+                return "Extractor's signature is not valid";
+
+            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json);
+            if (isValidValidators.contains(false))
+                return "One or more validator signatures are not valid";
+
             //TODO : call sign pdf method and return pdf as well
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
