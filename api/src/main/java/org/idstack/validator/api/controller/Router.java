@@ -51,7 +51,7 @@ public class Router {
             JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
             JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
             MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
-            feature.storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString());
+            feature.storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
             return "Wait";
         }
         return signDocument(feature, json, pdf, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
@@ -93,13 +93,13 @@ public class Router {
         urlList.retainAll(whitelist.values());
 
         try {
-            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json);
-            if (!isValidExtractor)
-                return "Extractor's signature is not valid";
-
-            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json);
-            if (isValidValidators.contains(false))
-                return "One or more validator signatures are not valid";
+            //TODO: verification logic
+//            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json);
+//            if (!isValidExtractor)
+//                return "Extractor's signature is not valid";
+//            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json);
+//            if (isValidValidators.contains(false))
+//                return "One or more validator signatures are not valid";
 
             //TODO : call sign pdf method and return pdf as well
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
