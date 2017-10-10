@@ -34,7 +34,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private String username;
     private String password;
 
-    @Autowired
     void init() throws IOException {
         apiKey = feature.getProperty(resource.getInputStream(), Constant.Configuration.API_KEY);
         username = feature.getProperty(resource.getInputStream(), Constant.Configuration.USERNAME);
@@ -43,6 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
+        init();
         auth.inMemoryAuthentication().withUser(username).password(password).roles(Constant.Configuration.USER_ADMIN);
     }
 
