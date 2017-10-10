@@ -7,7 +7,7 @@
     <groupId>org.idstack</groupId>
     <artifactId>validator-webservice</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-alpha2-SNAPSHOT</version>
+    <version>1.0-alpha2</version>
 
     <modules>
         <module>api</module>
@@ -24,7 +24,7 @@
     </dependencies>
 
     <properties>
-        <idstack.version>1.0-alpha2-SNAPSHOT</idstack.version>
+        <idstack.version>1.0-alpha2</idstack.version>
         <java.version>1.8</java.version>
         <tomcat.version>8.0.43</tomcat.version>
         <junit.version>4.11</junit.version>

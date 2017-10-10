@@ -7,7 +7,7 @@
     <artifactId>api</artifactId>
     <groupId>org.idstack</groupId>
     <packaging>war</packaging>
-    <version>1.0-alpha2-SNAPSHOT</version>
+    <version>1.0-alpha2</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -57,7 +57,7 @@
     </build>
 
     <properties>
-        <idstack.version>1.0-alpha2-SNAPSHOT</idstack.version>
+        <idstack.version>1.0-alpha2</idstack.version>
         <start-class>org.idstack.api.Main</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
