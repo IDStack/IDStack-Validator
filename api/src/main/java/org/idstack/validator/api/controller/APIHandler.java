@@ -151,17 +151,17 @@ public class APIHandler {
      *
      * @param version api version
      * @param json    json document
-     * @param pdf     pdf document
+     * @param pdfUrl  pdf url document
      * @return signed json + pdf documents
      * @throws IOException if file cannot be converted into bytes
      */
     //TODO : return both signed MR + signed PDF
     @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
+    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") String pdfUrl) throws IOException {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        return router.signDocumentManually(feature, json, pdf, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
+        return router.signDocumentManually(feature, json, pdfUrl, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
     /**
@@ -196,7 +196,7 @@ public class APIHandler {
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
-        return feature.getDocumentStore(storeFilePath, true);
+        return feature.getDocumentStore(storeFilePath, configFilePath, true);
     }
 
     //*************************************************** PUBLIC API ***************************************************

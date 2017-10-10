@@ -57,14 +57,14 @@ public class Router {
         return signDocument(feature, json, pdf, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
-    protected String signDocumentManually(FeatureImpl feature, String json, MultipartFile pdf, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType) throws IOException {
+    protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType) throws IOException {
         Document document = Parser.parseDocumentJson(json);
         String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
-        return signDocument(feature, json, pdf, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
+        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
     }
 
     // TODO : restrict to sign by previous signer
-    private String signDocument(FeatureImpl feature, String json, MultipartFile pdf, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType) {
+    private String signDocument(FeatureImpl feature, String json, Object pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType) {
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
         boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
