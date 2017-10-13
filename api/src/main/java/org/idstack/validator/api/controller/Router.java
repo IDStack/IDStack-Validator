@@ -93,13 +93,12 @@ public class Router {
         urlList.retainAll(whitelist.values());
 
         try {
-            //TODO: verification logic
-//            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json);
-//            if (!isValidExtractor)
-//                return "Extractor's signature is not valid";
-//            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json);
-//            if (isValidValidators.contains(false))
-//                return "One or more validator signatures are not valid";
+            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
+            if (!isValidExtractor)
+                return "Extractor's signature is not valid";
+            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json, tmpFilePath);
+            if (isValidValidators.contains(false))
+                return "One or more validator signatures are not valid";
 
             //TODO : call sign pdf method and return pdf as well
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
