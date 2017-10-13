@@ -42,6 +42,7 @@ public class APIHandler {
     private String pubCertFilePath;
     private String pubCertType;
     private String storeFilePath;
+    private String tmpFilePath;
 
     @PostConstruct
     void init() throws IOException {
@@ -53,6 +54,7 @@ public class APIHandler {
         pubCertFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.PUB_CERTIFICATE_FILE_PATH);
         pubCertType = feature.getProperty(resource.getInputStream(), Constant.Configuration.PUB_CERTIFICATE_TYPE);
         storeFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.STORE_FILE_PATH);
+        tmpFilePath = feature.getProperty(resource.getInputStream(), Constant.Configuration.TEMP_FILE_PATH);
     }
 
     @RequestMapping(value = {"/", "/{version}", "/{version}/{apikey}"})
@@ -161,7 +163,7 @@ public class APIHandler {
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") String pdfUrl) throws IOException {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        return router.signDocumentManually(feature, json, pdfUrl, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType);
+        return router.signDocumentManually(feature, json, pdfUrl, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath);
     }
 
     /**
@@ -217,7 +219,7 @@ public class APIHandler {
     public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath);
+        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath);
     }
 
     /**
