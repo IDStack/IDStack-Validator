@@ -1,9 +1,13 @@
 package org.idstack.validator.api.configuration;
 
+import com.google.gson.Gson;
+import org.idstack.feature.Constant;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Collections;
 
 /**
  * @author Chanaka Lakmal
@@ -16,6 +20,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(RuntimeException.class)
     public String  handle(RuntimeException e) {
-        return e.getMessage();
+        return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, e.getMessage()));
     }
 }
