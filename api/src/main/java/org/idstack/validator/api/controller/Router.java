@@ -3,6 +3,7 @@ package org.idstack.validator.api.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.itextpdf.text.DocumentException;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
@@ -11,6 +12,8 @@ import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
+import org.idstack.feature.sign.pdf.JsonPdfMapper;
+import org.idstack.feature.sign.pdf.PdfCertifier;
 import org.idstack.feature.verification.ExtractorVerifier;
 import org.idstack.feature.verification.SignatureVerifier;
 import org.idstack.validator.JsonSigner;
@@ -18,11 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableKeyException;
+import java.nio.file.Paths;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
 
@@ -64,7 +66,7 @@ public class Router {
     }
 
     // TODO : restrict to sign by previous signer
-    private String signDocument(FeatureImpl feature, String json, Object pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath) {
+    private String signDocument(FeatureImpl feature, String json, Object pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath){
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
         boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
@@ -93,20 +95,40 @@ public class Router {
         urlList.retainAll(whitelist.values());
 
         try {
-            //TODO: verification logic
-//            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json);
-//            if (!isValidExtractor)
-//                return "Extractor's signature is not valid";
-//            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json);
-//            if (isValidValidators.contains(false))
-//                return "One or more validator signatures are not valid";
+            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
+            if (!isValidExtractor)
+                return "Extractor's signature is not valid";
+            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json, tmpFilePath);
+            if (isValidValidators.contains(false))
+                return "One or more validator signatures are not valid";
 
-            //TODO : call sign pdf method and return pdf as well
+            //TODO : return signed pdf
+            //TODO remove below line after configuring direct links
+            pdfUrl = "https://dl.dropboxusercontent.com/s/oa9cciayegzngkz/signed_temp.pdf?dl=0";
+            String sigID = UUID.randomUUID().toString();
+            String pdfPath = feature.createTempFile((String) pdfUrl,tmpFilePath, "extracted_temp.pdf").getPath();
+
+            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
+            String hashInJson = document.getMetaData().getPdfHash();
+
+            if(!(hashInJson.equals(hashInPdf))){
+                return "Pdf and the machine readable file are not not matching each other";
+            }
+
+            PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType) ,feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
+
+            boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
+            if(!verifiedPdf){
+                return "One or more signatures in the Pdf are invalid";
+            }
+            pdfCertifier.signPdf(pdfPath, sigID);
+
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
+
             return jsonSigner.signJson(json, isContentSignable, urlList);
-        } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | CMSException | CloneNotSupportedException | NoSuchProviderException | OperatorCreationException | KeyStoreException e) {
+        } catch (IOException | CMSException | CloneNotSupportedException | OperatorCreationException | GeneralSecurityException | DocumentException e) {
             throw new RuntimeException(e);
         }
     }
