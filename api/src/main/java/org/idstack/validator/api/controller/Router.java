@@ -21,11 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
 import java.util.*;
 
 /**
@@ -43,30 +40,32 @@ public class Router {
     @Autowired
     private SignatureVerifier signatureVerifier;
 
-    protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath) throws IOException {
+    protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
         String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
         if (documentConfig == null)
             return "Cannot process document type : " + document.getMetaData().getDocumentType();
+
+        JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
+        JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
+        MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
+        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
+
         boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
-        if (!isAutomaticProcessable) {
-            JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
-            JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
-            MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
-            feature.storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
+        if (!isAutomaticProcessable)
             return "Wait";
-        }
-        return signDocument(feature, json, pdf, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath);
+
+        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
 
-    protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath) throws IOException {
+    protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
         String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
-        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath);
+        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
 
     // TODO : restrict to sign by previous signer
-    private String signDocument(FeatureImpl feature, String json, Object pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath){
+    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) {
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
         boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
@@ -103,22 +102,22 @@ public class Router {
                 return "One or more validator signatures are not valid";
 
             //TODO : return signed pdf
-            //TODO remove below line after configuring direct links
-            pdfUrl = "https://dl.dropboxusercontent.com/s/oa9cciayegzngkz/signed_temp.pdf?dl=0";
             String sigID = UUID.randomUUID().toString();
-            String pdfPath = feature.createTempFile((String) pdfUrl,tmpFilePath, "extracted_temp.pdf").getPath();
+            String localPdfUrl = feature.parseUrlAsLocalFile(pdfUrl, pubFilePath);
+
+            String pdfPath = feature.createTempFile(pdfUrl, tmpFilePath, "extracted_temp.pdf").getPath();
 
             String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
             String hashInJson = document.getMetaData().getPdfHash();
 
-            if(!(hashInJson.equals(hashInPdf))){
+            if (!(hashInJson.equals(hashInPdf))) {
                 return "Pdf and the machine readable file are not not matching each other";
             }
 
-            PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType) ,feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
+            PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
             boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
-            if(!verifiedPdf){
+            if (!verifiedPdf) {
                 return "One or more signatures in the Pdf are invalid";
             }
             pdfCertifier.signPdf(pdfPath, sigID);
