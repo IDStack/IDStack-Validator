@@ -105,9 +105,7 @@ public class Router {
             String sigID = UUID.randomUUID().toString();
             String localPdfUrl = feature.parseUrlAsLocalFile(pdfUrl, pubFilePath);
 
-            String pdfPath = feature.createTempFile(pdfUrl, tmpFilePath, "extracted_temp.pdf").getPath();
-
-            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
+            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(localPdfUrl);
             String hashInJson = document.getMetaData().getPdfHash();
 
             if (!(hashInJson.equals(hashInPdf))) {
@@ -116,11 +114,11 @@ public class Router {
 
             PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
+            boolean verifiedPdf = pdfCertifier.verifySignatures(localPdfUrl);
             if (!verifiedPdf) {
                 return "One or more signatures in the Pdf are invalid";
             }
-            pdfCertifier.signPdf(pdfPath, sigID);
+            pdfCertifier.signPdf(localPdfUrl, sigID);
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
