@@ -12,6 +12,7 @@ import org.idstack.feature.Parser;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
+import org.idstack.feature.response.SignedResponse;
 import org.idstack.feature.sign.pdf.JsonPdfMapper;
 import org.idstack.feature.sign.pdf.PdfCertifier;
 import org.idstack.feature.verification.ExtractorVerifier;
@@ -40,6 +41,9 @@ public class Router {
     @Autowired
     private SignatureVerifier signatureVerifier;
 
+    @Autowired
+    private SignedResponse signedResponse;
+
     protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
         String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
@@ -49,7 +53,7 @@ public class Router {
         JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
         JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
         MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
-        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
+        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
 
         boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
         if (!isAutomaticProcessable)
@@ -64,7 +68,6 @@ public class Router {
         return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
 
-    // TODO : restrict to sign by previous signer
     private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) {
 
         boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
@@ -101,7 +104,6 @@ public class Router {
             if (isValidValidators.contains(false))
                 return "One or more validator signatures are not valid";
 
-            //TODO : return signed pdf
             String sigID = UUID.randomUUID().toString();
             String localPdfUrl = feature.parseUrlAsLocalFile(pdfUrl, pubFilePath);
 
@@ -124,7 +126,13 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            return jsonSigner.signJson(json, isContentSignable, urlList);
+            //TODO : return signed response object with both pdf + json
+
+            signedResponse.setJson(jsonSigner.signJson(json, isContentSignable, urlList));
+            signedResponse.setPdf("signed_"+localPdfUrl);
+
+            return new Gson().toJson(signedResponse);
+
         } catch (IOException | CMSException | CloneNotSupportedException | OperatorCreationException | GeneralSecurityException | DocumentException e) {
             throw new RuntimeException(e);
         }
