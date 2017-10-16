@@ -105,9 +105,9 @@ public class Router {
                 return "One or more validator signatures are not valid";
 
             String sigID = UUID.randomUUID().toString();
-            String localPdfUrl = feature.parseUrlAsLocalFile(pdfUrl, pubFilePath);
+            String localPdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
 
-            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(localPdfUrl);
+            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(localPdfPath);
             String hashInJson = document.getMetaData().getPdfHash();
 
             if (!(hashInJson.equals(hashInPdf))) {
@@ -116,18 +116,18 @@ public class Router {
 
             PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            boolean verifiedPdf = pdfCertifier.verifySignatures(localPdfUrl);
+            boolean verifiedPdf = pdfCertifier.verifySignatures(localPdfPath);
             if (!verifiedPdf) {
                 return "One or more signatures in the Pdf are invalid";
             }
-            pdfCertifier.signPdf(localPdfUrl, sigID);
+            String localSignedPdfPath = pdfCertifier.signPdf(localPdfPath, sigID);
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
             signedResponse.setJson(jsonSigner.signJson(json, isContentSignable, urlList));
-            signedResponse.setPdf("signed_"+localPdfUrl);
+            signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(localSignedPdfPath, configFilePath));
 
             return new Gson().toJson(signedResponse);
 
