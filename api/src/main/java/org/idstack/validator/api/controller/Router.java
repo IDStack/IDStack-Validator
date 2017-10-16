@@ -126,8 +126,6 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            //TODO : return signed response object with both pdf + json
-
             signedResponse.setJson(jsonSigner.signJson(json, isContentSignable, urlList));
             signedResponse.setPdf("signed_"+localPdfUrl);
 

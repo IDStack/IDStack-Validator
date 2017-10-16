@@ -160,7 +160,6 @@ public class APIHandler {
      * @return signed json + pdf documents
      * @throws IOException if file cannot be converted into bytes
      */
-    //TODO : return both signed MR + signed PDF
     @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") String pdfUrl) throws IOException {
@@ -216,7 +215,6 @@ public class APIHandler {
      * @return signed json + pdf documents
      * @throws IOException if file cannot be converted into bytes
      */
-    //TODO : return both signed MR + signed PDF
     @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
