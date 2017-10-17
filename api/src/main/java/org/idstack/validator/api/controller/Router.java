@@ -9,6 +9,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.idstack.feature.Parser;
+import org.idstack.feature.configuration.BlackListConfig;
+import org.idstack.feature.configuration.DocConfig;
+import org.idstack.feature.configuration.DocumentConfig;
+import org.idstack.feature.configuration.WhiteListConfig;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
@@ -24,7 +28,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Chanaka Lakmal
@@ -46,8 +53,9 @@ public class Router {
 
     protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
-        String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
-        if (documentConfig == null)
+        DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
+        DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
+        if (docConfig != null)
             return "Cannot process document type : " + document.getMetaData().getDocumentType();
 
         JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
@@ -55,25 +63,22 @@ public class Router {
         MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
         String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, UUID.randomUUID().toString(), 1);
 
-        boolean isAutomaticProcessable = Boolean.parseBoolean(documentConfig.split(",")[0]);
-        if (!isAutomaticProcessable)
+        if (!docConfig.isAutomaticProcessable())
             return "Wait";
 
-        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
+        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
 
     protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) throws IOException {
         Document document = Parser.parseDocumentJson(json);
-        String documentConfig = (String) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME, Optional.of(document.getMetaData().getDocumentType()));
-        return signDocument(feature, json, pdfUrl, document, documentConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
+        DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
+        DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
+        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
 
-    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, String documentConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) {
+    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) {
 
-        boolean isExtractorIssuer = Boolean.parseBoolean(documentConfig.split(",")[1]);
-        boolean isContentSignable = Boolean.parseBoolean(documentConfig.split(",")[2]);
-
-        if (isExtractorIssuer)
+        if (docConfig.isIssuerEqualExtractor())
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                 return "Extractor should be the issuer";
 
@@ -83,18 +88,18 @@ public class Router {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        Properties whitelist = (Properties) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME, Optional.empty());
-        Properties blacklist = (Properties) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME, Optional.empty());
-        boolean isBlackListed = !Collections.disjoint(blacklist.values(), urlList);
-        boolean isWhiteListed = !Collections.disjoint(whitelist.values(), urlList);
+        WhiteListConfig whiteListConfig = (WhiteListConfig) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME);
+        BlackListConfig blackListConfig = (BlackListConfig) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME);
+        boolean isBlackListed = !Collections.disjoint(blackListConfig.getBlackList(), urlList);
+        boolean isWhiteListed = !Collections.disjoint(whiteListConfig.getWhiteList(), urlList);
 
         if (isBlackListed)
             return "One or more signatures are blacklisted";
 
-        if (!isContentSignable && !isWhiteListed)
+        if (!docConfig.isContentSignable() && !isWhiteListed)
             return "Nothing to be signed";
 
-        urlList.retainAll(whitelist.values());
+        urlList.retainAll(whiteListConfig.getWhiteList());
 
         try {
             boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
@@ -126,7 +131,7 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            signedResponse.setJson(jsonSigner.signJson(json, isContentSignable, urlList));
+            signedResponse.setJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList));
             signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(localSignedPdfPath, configFilePath));
 
             return new Gson().toJson(signedResponse);
@@ -134,6 +139,10 @@ public class Router {
         } catch (IOException | CMSException | CloneNotSupportedException | OperatorCreationException | GeneralSecurityException | DocumentException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected DocConfig getDocConfig(final List<DocConfig> list, final String name) {
+        return list.stream().filter(o -> o.getDocType().equals(name)).findFirst().get();
     }
 
     protected String getConfigFileName(String type) {

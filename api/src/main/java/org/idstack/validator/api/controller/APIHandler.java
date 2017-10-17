@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * @author Chanaka Lakmal
@@ -96,22 +95,21 @@ public class APIHandler {
     }
 
     /**
-     * Returned the saved configurations. If property is mentioned this returns only the mentioned property from the given type otherwise everything
+     * Return the saved configurations for the given type
      *
-     * @param version  api version
-     * @param apikey   api key
-     * @param type     type of configuration [basic, document, whitelist, blacklist]
-     * @param property property of configuration
+     * @param version api version
+     * @param apikey  api key
+     * @param type    type of configuration [basic, document, whitelist, blacklist]
      * @return configuration as json
      */
-    @RequestMapping(value = {"/{version}/{apikey}/getconfig/{type}/{property}", "/{version}/{apikey}/getconfig/{type}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"/{version}/{apikey}/getconfig/{type}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String getConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type, @PathVariable("property") Optional<String> property) {
+    public String getConfiguration(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @PathVariable("type") String type) {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (!feature.validateRequest(apiKey, apikey))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
-        return feature.getConfigurationAsJson(configFilePath, router.getConfigFileName(type), property);
+        return new Gson().toJson(feature.getConfiguration(configFilePath, router.getConfigFileName(type)));
     }
 
     /**
