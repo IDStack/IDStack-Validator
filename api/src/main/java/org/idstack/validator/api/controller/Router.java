@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,6 +131,8 @@ public class Router {
             }
 
             String signedPdfPath = storeFilePath + Constant.SIGNED + File.separator;
+            Files.createDirectories(Paths.get(signedPdfPath));
+
             pdfCertifier.signPdf(pdfPath, signedPdfPath, sigID);
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
