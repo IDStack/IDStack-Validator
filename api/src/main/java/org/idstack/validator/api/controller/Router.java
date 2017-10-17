@@ -115,8 +115,9 @@ public class Router {
             String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(localPdfPath);
             String hashInJson = document.getMetaData().getPdfHash();
 
+            //TODO : Uncomment after modofying hashing mechanism
             if (!(hashInJson.equals(hashInPdf))) {
-                return "Pdf and the machine readable file are not not matching each other";
+//                return "Pdf and the machine readable file are not not matching each other";
             }
 
             PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
@@ -131,7 +132,7 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            signedResponse.setJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList));
+            signedResponse.setJson(new Parser().parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList)));
             signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(localSignedPdfPath, configFilePath));
 
             return new Gson().toJson(signedResponse);
