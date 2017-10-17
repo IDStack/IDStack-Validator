@@ -126,7 +126,7 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            signedResponse.setJson(jsonSigner.signJson(json, isContentSignable, urlList));
+            signedResponse.setJson(new Parser().parseDocumentJson(jsonSigner.signJson(json, isContentSignable, urlList)));
             signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(localSignedPdfPath, configFilePath));
 
             return new Gson().toJson(signedResponse);
