@@ -173,7 +173,6 @@ public class APIHandler {
      * @param apikey  api key
      * @return document types
      */
-    //TODO : pass this to lambda function
     @RequestMapping(value = "/{version}/{apikey}/getdoctypes", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String getDocumentTypeList(@PathVariable("version") String version, @PathVariable("apikey") String apikey) {

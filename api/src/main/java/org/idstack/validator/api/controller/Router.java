@@ -55,7 +55,7 @@ public class Router {
         Document document = Parser.parseDocumentJson(json);
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
-        if (docConfig != null)
+        if (docConfig == null)
             return "Cannot process document type : " + document.getMetaData().getDocumentType();
 
         JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
