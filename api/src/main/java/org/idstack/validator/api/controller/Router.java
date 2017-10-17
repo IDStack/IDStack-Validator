@@ -64,7 +64,10 @@ public class Router {
         JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
         JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
         MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
-        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.PDF, UUID.randomUUID().toString(), 1);
+
+        String uuid = UUID.randomUUID().toString();
+        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.PDF, uuid, 1);
+        feature.storeDocuments(doc.toString().getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, uuid, 1);
 
         if (!docConfig.isAutomaticProcessable())
             return "Wait";
