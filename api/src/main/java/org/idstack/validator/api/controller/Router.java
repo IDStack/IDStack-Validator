@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -110,9 +111,9 @@ public class Router {
                 return "One or more validator signatures are not valid";
 
             String sigID = UUID.randomUUID().toString();
-            String localPdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
+            String pdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
 
-            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(localPdfPath);
+            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
             String hashInJson = document.getMetaData().getPdfHash();
 
             //TODO : Uncomment after modifying hashing mechanism
@@ -122,18 +123,20 @@ public class Router {
 
             PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            boolean verifiedPdf = pdfCertifier.verifySignatures(localPdfPath);
+            boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
             if (!verifiedPdf) {
                 return "One or more signatures in the Pdf are invalid";
             }
-            String localSignedPdfPath = pdfCertifier.signPdf(localPdfPath, sigID);
+
+            String signedPdfPath = pubFilePath + Constant.SIGNED + File.separator;
+            pdfCertifier.signPdf(pdfPath, signedPdfPath, sigID);
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
             signedResponse.setJson(new Parser().parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList)));
-            signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(localSignedPdfPath, configFilePath));
+            signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(signedPdfPath, configFilePath));
 
             return new Gson().toJson(signedResponse);
 
