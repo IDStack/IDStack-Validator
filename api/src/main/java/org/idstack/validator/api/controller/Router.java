@@ -133,7 +133,7 @@ public class Router {
             String signedPdfPath = storeFilePath + Constant.SIGNED + File.separator;
             Files.createDirectories(Paths.get(signedPdfPath));
 
-            pdfCertifier.signPdf(pdfPath, signedPdfPath, sigID);
+            signedPdfPath = pdfCertifier.signPdf(pdfPath, signedPdfPath, sigID);
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
