@@ -59,7 +59,7 @@ public class Router {
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
         if (docConfig == null)
-            return "Cannot process document type : " + document.getMetaData().getDocumentType();
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.WARN_DOCUMENT_TYPE));
 
         JsonObject doc = new JsonParser().parse(json).getAsJsonObject();
         JsonObject metadataObject = doc.getAsJsonObject(Constant.JsonAttribute.META_DATA);
@@ -70,7 +70,7 @@ public class Router {
         feature.storeDocuments(doc.toString().getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, uuid, 1);
 
         if (!docConfig.isAutomaticProcessable())
-            return "Wait";
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.WARN_WILL_NOTIFY));
 
         return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
@@ -86,7 +86,7 @@ public class Router {
 
         if (docConfig.isIssuerEqualExtractor())
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
-                return "Extractor should be the issuer";
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_EXTRACTOR_ISSUER));
 
         ArrayList<String> urlList = new ArrayList<>();
         urlList.add(document.getExtractor().getSignature().getUrl());
@@ -100,25 +100,29 @@ public class Router {
         boolean isWhiteListed = !Collections.disjoint(whiteListConfig.getWhiteList(), urlList);
 
         if (isBlackListed)
-            return "One or more signatures are blacklisted";
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_BLACKLISTED));
 
         if (!docConfig.isContentSignable() && !isWhiteListed)
-            return "Nothing to be signed";
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_NOTHING_SIGNABLE));
 
         urlList.retainAll(whiteListConfig.getWhiteList());
 
         try {
             boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
             if (!isValidExtractor)
-                return "Extractor's signature is not valid";
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_EXTRACTOR_SIGNATURE));
+
             ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json, tmpFilePath);
             if (isValidValidators.contains(false))
-                return "One or more validator signatures are not valid";
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VALIDATOR_SIGNATURE));
 
             String sigID = UUID.randomUUID().toString();
             String pdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
 
             String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
+            if (hashInPdf == null)
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PDF_NOT_SIGNED));
+
             String hashInJson = document.getMetaData().getPdfHash();
 
             //TODO : Uncomment after modifying hashing mechanism
@@ -129,9 +133,8 @@ public class Router {
             PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
             boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
-            if (!verifiedPdf) {
-                return "One or more signatures in the Pdf are invalid";
-            }
+            if (!verifiedPdf)
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PDF_SIGNATURES));
 
             String signedPdfPath = tmpFilePath + Constant.SIGNED + File.separator;
             Files.createDirectories(Paths.get(signedPdfPath));
