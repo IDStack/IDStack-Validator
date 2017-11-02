@@ -75,7 +75,7 @@ public class Router {
         feature.storeDocuments(doc.toString().getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, uuid, 1);
 
         if (!docConfig.isAutomaticProcessable())
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.WARN_WILL_NOTIFY));
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.INFO_WILL_NOTIFY));
 
         return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
     }
