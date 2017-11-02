@@ -129,7 +129,7 @@ public class Router {
             String sigID = UUID.randomUUID().toString();
             String pdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
 
-            if (Files.exists(Paths.get(pdfPath)))
+            if (!Files.exists(Paths.get(pdfPath)))
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_FILE_NOT_FOUND));
 
             String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
