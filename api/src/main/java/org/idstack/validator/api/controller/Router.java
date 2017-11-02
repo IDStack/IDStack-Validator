@@ -55,7 +55,12 @@ public class Router {
     private SignedResponse signedResponse;
 
     protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
-        Document document = Parser.parseDocumentJson(json);
+        Document document;
+        try {
+            document = Parser.parseDocumentJson(json);
+        } catch (Exception e) {
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_JSON_INVALID));
+        }
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
         if (docConfig == null)
@@ -76,7 +81,12 @@ public class Router {
     }
 
     protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
-        Document document = Parser.parseDocumentJson(json);
+        Document document;
+        try {
+            document = Parser.parseDocumentJson(json);
+        } catch (Exception e) {
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_JSON_INVALID));
+        }
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
         return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
@@ -118,6 +128,9 @@ public class Router {
 
             String sigID = UUID.randomUUID().toString();
             String pdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
+
+            if (Files.exists(Paths.get(pdfPath)))
+                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_FILE_NOT_FOUND));
 
             String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
             if (hashInPdf == null)
