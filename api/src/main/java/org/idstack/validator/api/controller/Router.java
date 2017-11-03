@@ -32,10 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Chanaka Lakmal
@@ -78,7 +75,7 @@ public class Router {
         if (!docConfig.isAutomaticProcessable())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.INFO_WILL_NOTIFY));
 
-        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
+        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath, Optional.of(uuid));
     }
 
     protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
@@ -90,7 +87,8 @@ public class Router {
         }
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
-        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
+
+        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath, Optional.empty());
     }
 
     protected String signDocumentManually(FeatureImpl feature, String requestId, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
@@ -108,10 +106,11 @@ public class Router {
 
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
-        return signDocument(feature, jsonList.get(0).toString(), pdfList.get(0).getAsString(), document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath);
+
+        return signDocument(feature, jsonList.get(0).toString(), pdfList.get(0).getAsString(), document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath, Optional.of(requestId));
     }
 
-    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath) {
+    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath, Optional requestId) {
 
         if (docConfig.isIssuerEqualExtractor())
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
@@ -179,6 +178,10 @@ public class Router {
 
             signedResponse.setJson(Parser.parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList)));
             signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(signedPdfPath, configFilePath));
+
+            // This will add the request id into request configuration list
+            if (requestId.isPresent())
+                feature.saveRequestConfiguration(configFilePath, requestId.get().toString());
 
             return new Gson().toJson(signedResponse);
 
