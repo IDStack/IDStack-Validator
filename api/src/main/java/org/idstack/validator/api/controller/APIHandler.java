@@ -171,6 +171,24 @@ public class APIHandler {
     }
 
     /**
+     * Sign the received json document + pdf document by the validator and return the signed documents
+     *
+     * @param version   api version
+     * @param requestId request id
+     * @return signed json + pdf documents
+     * @throws IOException if file cannot be converted into bytes
+     */
+    @RequestMapping(value = "/{version}/{apikey}/sign/request", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "request_id") String requestId) throws IOException {
+        if (!feature.validateRequest(version))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        if (requestId.isEmpty())
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER_NULL));
+        return router.signDocumentManually(feature, requestId, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath).replaceAll(pubFilePath, File.separator);
+    }
+
+    /**
      * Get the document types that protocol facilitates
      *
      * @param version api version
