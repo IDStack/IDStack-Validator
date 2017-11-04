@@ -190,6 +190,12 @@ public class Router {
         }
     }
 
+    protected String saveDocument(FeatureImpl feature, MultipartFile pdf, String configFilePath, String tmpFilePath) throws IOException {
+        String tmpPath = feature.createTempFile(pdf.getBytes(), tmpFilePath, UUID.randomUUID().toString() + Constant.FileExtenstion.PDF).toString();
+        String tmpUrl = feature.parseLocalFilePathAsOnlineUrl(tmpPath, configFilePath);
+        return new Gson().toJson(Collections.singletonMap(Constant.TEMP_URL, tmpUrl));
+    }
+
     protected DocConfig getDocConfig(final List<DocConfig> list, final String name) {
         return list.stream().filter(o -> o.getDocType().equals(name)).findFirst().get();
     }

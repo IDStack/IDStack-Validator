@@ -222,6 +222,16 @@ public class APIHandler {
         return feature.getDocumentStore(storeFilePath, configFilePath, true).replaceAll(pubFilePath, File.separator);
     }
 
+    @RequestMapping(value = "/{version}/{apikey}/save", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String saveDocument(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "pdf") final MultipartFile pdf) throws IOException {
+        if (!feature.validateRequest(version))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        if (!feature.validateRequest(apiKey, apikey))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
+        return router.saveDocument(feature, pdf, configFilePath, tmpFilePath);
+    }
+
     //*************************************************** PUBLIC API ***************************************************
 
     /**
