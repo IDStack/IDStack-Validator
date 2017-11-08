@@ -242,6 +242,16 @@ public class APIHandler {
         return feature.getCertificateDetails(certUrl, tmpFilePath);
     }
 
+    @RequestMapping(value = "/{version}/{apikey}/cleardocstore", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String clearDocStore(@PathVariable("version") String version, @PathVariable("apikey") String apikey) throws IOException {
+        if (!feature.validateRequest(version))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        if (!feature.validateRequest(apiKey, apikey))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
+        return feature.clearDocStore(configFilePath, storeFilePath);
+    }
+
     //*************************************************** PUBLIC API ***************************************************
 
     /**
