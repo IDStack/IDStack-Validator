@@ -86,9 +86,9 @@ public class APIHandler {
             case Constant.Configuration.DOCUMENT_CONFIG:
                 return feature.saveDocumentConfiguration(configFilePath, json);
             case Constant.Configuration.WHITELIST_CONFIG:
-                return feature.saveWhiteListConfiguration(configFilePath, json);
+                return feature.saveWhiteListConfiguration(configFilePath, json, tmpFilePath);
             case Constant.Configuration.BLACKLIST_CONFIG:
-                return feature.saveBlackListConfiguration(configFilePath, json);
+                return feature.saveBlackListConfiguration(configFilePath, json, tmpFilePath);
             default:
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER));
         }
@@ -230,16 +230,6 @@ public class APIHandler {
         if (!feature.validateRequest(apiKey, apikey))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         return router.saveDocument(feature, pdf, configFilePath, tmpFilePath);
-    }
-
-    @RequestMapping(value = "/{version}/{apikey}/getcertdetails", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public String getCertDetails(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "cert_url") String certUrl) {
-        if (!feature.validateRequest(version))
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        if (!feature.validateRequest(apiKey, apikey))
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
-        return feature.getCertificateDetails(certUrl, tmpFilePath);
     }
 
     @RequestMapping(value = "/{version}/{apikey}/cleardocstore", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
