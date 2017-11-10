@@ -1,7 +1,6 @@
 package org.idstack.validator.api.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.itextpdf.text.DocumentException;
@@ -10,10 +9,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.idstack.feature.Parser;
-import org.idstack.feature.configuration.BlackListConfig;
 import org.idstack.feature.configuration.DocConfig;
 import org.idstack.feature.configuration.DocumentConfig;
-import org.idstack.feature.configuration.WhiteListConfig;
+import org.idstack.feature.configuration.list.BlackList;
+import org.idstack.feature.configuration.list.WhiteList;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
@@ -91,25 +90,6 @@ public class Router {
         return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath, Optional.empty());
     }
 
-    protected String signDocumentManually(FeatureImpl feature, String requestId, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
-        String json = feature.getDocumentListByRequestId(storeFilePath, requestId);
-        String pdf = feature.getPdfListByRequestId(storeFilePath, configFilePath, pubFilePath, requestId);
-        JsonArray jsonList = new JsonParser().parse(json).getAsJsonObject().get(Constant.JSON_LIST).getAsJsonArray();
-        JsonArray pdfList = new JsonParser().parse(pdf).getAsJsonObject().get(Constant.PDF_LIST).getAsJsonArray();
-
-        Document document;
-        try {
-            document = Parser.parseDocumentJson(jsonList.get(0).toString());
-        } catch (Exception e) {
-            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_JSON_INVALID));
-        }
-
-        DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
-        DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
-
-        return signDocument(feature, jsonList.get(0).toString(), pdfList.get(0).getAsString(), document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, tmpFilePath, pubFilePath, Optional.of(requestId));
-    }
-
     private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String tmpFilePath, String pubFilePath, Optional requestId) {
 
         if (docConfig.isIssuerEqualExtractor())
@@ -122,10 +102,10 @@ public class Router {
             urlList.add(validator.getSignature().getUrl());
         }
 
-        WhiteListConfig whiteListConfig = (WhiteListConfig) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME);
-        BlackListConfig blackListConfig = (BlackListConfig) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME);
-        boolean isBlackListed = !Collections.disjoint(blackListConfig.getBlackList(), urlList);
-        boolean isWhiteListed = !Collections.disjoint(whiteListConfig.getWhiteList(), urlList);
+        WhiteList whiteList = (WhiteList) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME);
+        BlackList blackList = (BlackList) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME);
+        boolean isBlackListed = !Collections.disjoint(blackList.getBlackList(), urlList);
+        boolean isWhiteListed = !Collections.disjoint(whiteList.getWhiteList(), urlList);
 
         if (isBlackListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_BLACKLISTED));
@@ -133,7 +113,7 @@ public class Router {
         if (!docConfig.isContentSignable() && !isWhiteListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_NOTHING_SIGNABLE));
 
-        urlList.retainAll(whiteListConfig.getWhiteList());
+        urlList.retainAll(whiteList.getWhiteList());
 
         try {
             boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
@@ -154,7 +134,7 @@ public class Router {
             if (hashInPdf == null)
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PDF_NOT_SIGNED));
 
-            String hashInJson = document.getMetaData().getPdfHash();
+            String hashInJson = document.getMetaData().getPdf();
 
             //TODO : Uncomment after modifying hashing mechanism
             if (!(hashInJson.equals(hashInPdf))) {
