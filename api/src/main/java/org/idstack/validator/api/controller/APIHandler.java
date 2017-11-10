@@ -155,6 +155,7 @@ public class APIHandler {
      * Sign the received json document + pdf document by the validator and return the signed documents
      *
      * @param version api version
+     * @param apikey  api key
      * @param json    json document
      * @param pdfUrl  pdf url document
      * @return signed json + pdf documents
@@ -162,30 +163,34 @@ public class APIHandler {
      */
     @RequestMapping(value = "/{version}/{apikey}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") String pdfUrl) throws IOException {
+    public String signDocumentManually(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") String pdfUrl) throws IOException {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
+        if (!feature.validateRequest(apiKey, apikey))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         if (json.isEmpty() || pdfUrl.isEmpty())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER_NULL));
         return router.signDocumentManually(feature, json, pdfUrl, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath).replaceAll(pubFilePath, File.separator);
     }
 
     /**
-     * Sign the received json document + pdf document by the validator and return the signed documents
+     * Get the stored documents in the configured store path by request id
      *
-     * @param version   api version
-     * @param requestId request id
-     * @return signed json + pdf documents
-     * @throws IOException if file cannot be converted into bytes
+     * @param version api version
+     * @param apikey  api key
+     * @param jsonUrl json url
+     * @return document
      */
-    @RequestMapping(value = "/{version}/{apikey}/sign/request", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{version}/{apikey}/getdoc/url", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String signDocumentManually(@PathVariable("version") String version, @RequestParam(value = "request_id") String requestId) throws IOException {
+    public String getStoredDocument(@PathVariable("version") String version, @PathVariable("apikey") String apikey, @RequestParam(value = "json_url") String jsonUrl) {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
-        if (requestId.isEmpty())
+        if (!feature.validateRequest(apiKey, apikey))
+            return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
+        if (jsonUrl.isEmpty())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER_NULL));
-        return router.signDocumentManually(feature, requestId, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath).replaceAll(pubFilePath, File.separator);
+        return feature.getDocumentByUrl(storeFilePath, pubFilePath, jsonUrl, tmpFilePath);
     }
 
     /**
@@ -249,19 +254,18 @@ public class APIHandler {
      *
      * @param version api version
      * @param json    json document
-     * @param pdf     pdf document
      * @param email   email of the sender
      * @return signed json + pdf documents
      * @throws IOException if file cannot be converted into bytes
      */
     @RequestMapping(value = "/{version}/sign", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "pdf") final MultipartFile pdf, @RequestParam(value = "email") String email) throws IOException {
+    public String signDocumentAutomatically(@PathVariable("version") String version, @RequestParam(value = "json") String json, @RequestParam(value = "email") String email) throws IOException {
         if (!feature.validateRequest(version))
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VERSION));
         if (json.isEmpty() || email.isEmpty())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER_NULL));
-        return router.signDocumentAutomatically(feature, json, pdf, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath).replaceAll(pubFilePath, File.separator);
+        return router.signDocumentAutomatically(feature, json, email, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath).replaceAll(pubFilePath, File.separator);
     }
 
     /**
