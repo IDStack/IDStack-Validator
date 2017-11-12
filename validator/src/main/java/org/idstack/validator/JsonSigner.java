@@ -62,7 +62,8 @@ public class JsonSigner {
     private Document sign(Document signOnlyDigitalJson, Document completeDigitalJson, boolean signContent, ArrayList<String> signList) throws CertificateException,
             NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, CMSException,
             OperatorCreationException, NoSuchProviderException {
-
+        //this is to avoid base 64 encode pdf get signed
+        signOnlyDigitalJson.getMetaData().setPdf("");
         String jsonStringToSign = new Gson().toJson(signOnlyDigitalJson);
 
         //Setting BouncyCastle as the security provider
