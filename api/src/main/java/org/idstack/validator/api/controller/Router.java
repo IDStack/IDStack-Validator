@@ -3,7 +3,6 @@ package org.idstack.validator.api.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.itextpdf.text.DocumentException;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
@@ -16,9 +15,6 @@ import org.idstack.feature.configuration.list.WhiteList;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
 import org.idstack.feature.document.Validator;
-import org.idstack.feature.response.SignedResponse;
-import org.idstack.feature.sign.pdf.JsonPdfMapper;
-import org.idstack.feature.sign.pdf.PdfCertifier;
 import org.idstack.feature.verification.ExtractorVerifier;
 import org.idstack.feature.verification.SignatureVerifier;
 import org.idstack.validator.JsonSigner;
@@ -26,16 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Chanaka Lakmal
@@ -52,10 +42,7 @@ public class Router {
     @Autowired
     private SignatureVerifier signatureVerifier;
 
-    @Autowired
-    private SignedResponse signedResponse;
-
-    protected String signDocumentAutomatically(FeatureImpl feature, String json, MultipartFile pdf, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
+    protected String signDocumentAutomatically(FeatureImpl feature, String json, String email, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
         Document document;
         try {
             document = Parser.parseDocumentJson(json);
@@ -72,29 +59,30 @@ public class Router {
         MetaData metaData = new Gson().fromJson(metadataObject.toString(), MetaData.class);
 
         String uuid = UUID.randomUUID().toString();
-        String pdfUrl = feature.storeDocuments(pdf.getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.PDF, uuid, 1);
+
         feature.storeDocuments(doc.toString().getBytes(), storeFilePath, configFilePath, pubFilePath, email, metaData.getDocumentType(), Constant.FileExtenstion.JSON, uuid, 1);
 
         if (!docConfig.isAutomaticProcessable())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.INFO_WILL_NOTIFY));
 
-        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath, uuid);
+        return signDocument(feature, json, Optional.of(uuid), document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath);
     }
 
-    protected String signDocumentManually(FeatureImpl feature, String json, String pdfUrl, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath, String requestId) throws IOException {
+    protected String signDocumentManually(FeatureImpl feature, String json, Optional<String> requestId, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) throws IOException {
         Document document;
         try {
             document = Parser.parseDocumentJson(json);
         } catch (Exception e) {
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_JSON_INVALID));
         }
+
         DocumentConfig documentConfig = (DocumentConfig) feature.getConfiguration(configFilePath, Constant.Configuration.DOCUMENT_CONFIG_FILE_NAME);
         DocConfig docConfig = getDocConfig(documentConfig.getDocument(), document.getMetaData().getDocumentType());
 
-        return signDocument(feature, json, pdfUrl, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath, requestId);
+        return signDocument(feature, json, requestId, document, docConfig, configFilePath, pvtCertFilePath, pvtCertType, pvtCertPasswordType, pubCertFilePath, pubCertType, storeFilePath, tmpFilePath, pubFilePath);
     }
 
-    private String signDocument(FeatureImpl feature, String json, String pdfUrl, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath, String requestId) {
+    private String signDocument(FeatureImpl feature, String json, Optional<String> requestId, Document document, DocConfig docConfig, String configFilePath, String pvtCertFilePath, String pvtCertType, String pvtCertPasswordType, String pubCertFilePath, String pubCertType, String storeFilePath, String tmpFilePath, String pubFilePath) {
 
         if (docConfig.isIssuerEqualExtractor())
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
@@ -128,58 +116,27 @@ public class Router {
             if (isValidValidators.contains(false))
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VALIDATOR_SIGNATURE));
 
-            String sigID = UUID.randomUUID().toString();
-            String pdfPath = feature.parseUrlAsLocalFilePath(pdfUrl, pubFilePath);
-
-            if (!Files.exists(Paths.get(pdfPath)))
-                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_FILE_NOT_FOUND));
-
-            String hashInPdf = new JsonPdfMapper().getHashOfTheOriginalContent(pdfPath);
-            if (hashInPdf == null)
-                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PDF_NOT_SIGNED));
-
-            String hashInJson = document.getMetaData().getPdf();
-
-            //TODO : Uncomment after modifying hashing mechanism
-            if (!(hashInJson.equals(hashInPdf))) {
-                //return "Pdf and the machine readable file are not not matching each other";
-            }
-
-            PdfCertifier pdfCertifier = new PdfCertifier(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType), feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType), feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
-
-            boolean verifiedPdf = pdfCertifier.verifySignatures(pdfPath);
-            if (!verifiedPdf)
-                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PDF_SIGNATURES));
-
-            String signedPdfPath = tmpFilePath + Constant.SIGNED + File.separator;
-            Files.createDirectories(Paths.get(signedPdfPath));
-
-            signedPdfPath = pdfCertifier.signPdf(pdfPath, signedPdfPath, sigID);
-
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
             Document validatedDocument = Parser.parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList));
-            feature.parseLocalFilePathAsOnlineUrl(signedPdfPath, configFilePath);
 
-            Path jsonFilePath = Files.write(Paths.get(tmpFilePath).resolve(Paths.get(UUID.randomUUID().toString() + Constant.FileExtenstion.JSON)), new Gson().toJson(validatedDocument).getBytes());
-            String finalJsonUrl = feature.parseLocalFilePathAsOnlineUrl(jsonFilePath.toString(), configFilePath);
-            String finalPdfUrl = feature.parseLocalFilePathAsOnlineUrl(signedPdfPath, configFilePath);
+            Path jsonPath = feature.createTempFile(new Gson().toJson(validatedDocument).getBytes(), tmpFilePath, UUID.randomUUID().toString() + Constant.FileExtenstion.JSON).toPath();
+            String jsonUrl = feature.parseLocalFilePathAsOnlineUrl(jsonPath.toString(), configFilePath);
 
             // This will send an email to owner with files
-            String message = feature.populateEmailBody(requestId, validatedDocument.getMetaData().getDocumentType().toUpperCase(), finalJsonUrl, finalPdfUrl);
-            feature.sendEmail(feature.getEmailByRequestId(storeFilePath, requestId), "IDStack Document Extraction", message);
+            if (requestId.isPresent()) {
+                String message = feature.populateEmailBody(requestId.get(), validatedDocument.getMetaData().getDocumentType().toUpperCase(), jsonUrl);
+                feature.sendEmail(feature.getEmailByRequestId(storeFilePath, requestId.get()), "IDStack Document Extraction", message);
 
-            signedResponse.setJson(validatedDocument);
-            signedResponse.setPdf(feature.parseLocalFilePathAsOnlineUrl(signedPdfPath, configFilePath));
+                // This will add the request id into request configuration list
+                feature.saveRequestConfiguration(configFilePath, requestId.get());
+            }
 
-            // This will add the request id into request configuration list
-            feature.saveRequestConfiguration(configFilePath, requestId);
+            return new Gson().toJson(validatedDocument);
 
-            return new Gson().toJson(signedResponse);
-
-        } catch (IOException | CMSException | CloneNotSupportedException | OperatorCreationException | GeneralSecurityException | DocumentException e) {
+        } catch (IOException | CMSException | CloneNotSupportedException | OperatorCreationException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
