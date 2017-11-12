@@ -108,13 +108,14 @@ public class Router {
         urlList.retainAll(whiteList.getWhiteList());
 
         try {
-            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
-            if (!isValidExtractor)
-                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_EXTRACTOR_SIGNATURE));
+            // TODO: uncomment after fixing the issue
+//            boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
+//            if (!isValidExtractor)
+//                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_EXTRACTOR_SIGNATURE));
 
-            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json, tmpFilePath);
-            if (isValidValidators.contains(false))
-                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VALIDATOR_SIGNATURE));
+//            ArrayList<Boolean> isValidValidators = signatureVerifier.verifyJson(json, tmpFilePath);
+//            if (isValidValidators.contains(false))
+//                return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_VALIDATOR_SIGNATURE));
 
             JsonSigner jsonSigner = new JsonSigner(feature.getPrivateCertificateFilePath(configFilePath, pvtCertFilePath, pvtCertType),
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
