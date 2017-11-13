@@ -212,7 +212,7 @@ public class APIHandler {
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_API_KEY));
         if (jsonUrl.isEmpty())
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER_NULL));
-        return feature.getDocumentByUrl(storeFilePath, pubFilePath, jsonUrl, tmpFilePath);
+        return feature.getDocumentByUrl(storeFilePath, pubFilePath, configFilePath, jsonUrl, tmpFilePath);
     }
 
     /**
