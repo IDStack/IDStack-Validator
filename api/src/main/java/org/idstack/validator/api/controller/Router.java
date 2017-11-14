@@ -97,8 +97,18 @@ public class Router {
 
         WhiteList whiteList = (WhiteList) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME);
         BlackList blackList = (BlackList) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME);
-        boolean isBlackListed = !Collections.disjoint(blackList.getBlackList(), urlList);
-        boolean isWhiteListed = !Collections.disjoint(whiteList.getWhiteList(), urlList);
+
+        ArrayList<String> whitelistUrls = new ArrayList<>();
+        for(int i=0; i<whiteList.getWhiteList().size();i++){
+            whitelistUrls.add(whiteList.getWhiteList().get(i).getUrl());
+        }
+        ArrayList<String> blacklistUrls = new ArrayList<>();
+        for(int i=0; i<blackList.getBlackList().size();i++){
+            blacklistUrls.add(blackList.getBlackList().get(i).getUrl());
+        }
+
+        boolean isBlackListed = !Collections.disjoint(blacklistUrls, urlList);
+        boolean isWhiteListed = !Collections.disjoint(whitelistUrls, urlList);
 
         if (isBlackListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_BLACKLISTED));
@@ -106,7 +116,7 @@ public class Router {
         if (!docConfig.isContentSignable() && !isWhiteListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_NOTHING_SIGNABLE));
 
-        urlList.retainAll(whiteList.getWhiteList());
+        urlList.retainAll(whitelistUrls);
 
         try {
             boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
