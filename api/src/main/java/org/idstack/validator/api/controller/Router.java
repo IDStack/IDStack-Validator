@@ -15,6 +15,7 @@ import org.idstack.feature.configuration.list.BlackList;
 import org.idstack.feature.configuration.list.WhiteList;
 import org.idstack.feature.document.Document;
 import org.idstack.feature.document.MetaData;
+import org.idstack.feature.document.Signature;
 import org.idstack.feature.document.Validator;
 import org.idstack.feature.verification.ExtractorVerifier;
 import org.idstack.feature.verification.SignatureVerifier;
@@ -89,10 +90,10 @@ public class Router {
             if (!document.getExtractor().getSignature().getUrl().equals(document.getMetaData().getIssuer().getUrl()))
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_EXTRACTOR_ISSUER));
 
-        ArrayList<String> urlList = new ArrayList<>();
-        urlList.add(document.getExtractor().getSignature().getUrl());
+        ArrayList<Signature> signatureList = new ArrayList<>();
+        signatureList.add(document.getExtractor().getSignature());
         for (Validator validator : document.getValidators()) {
-            urlList.add(validator.getSignature().getUrl());
+            signatureList.add(validator.getSignature());
         }
 
         WhiteList whiteList = (WhiteList) feature.getConfiguration(configFilePath, Constant.Configuration.WHITELIST_CONFIG_FILE_NAME);
@@ -107,8 +108,42 @@ public class Router {
             blacklistUrls.add(blackList.getBlackList().get(i).getUrl());
         }
 
-        boolean isBlackListed = !Collections.disjoint(blacklistUrls, urlList);
-        boolean isWhiteListed = !Collections.disjoint(whitelistUrls, urlList);
+        boolean isBlackListed = false;
+        boolean isWhiteListed = false;
+        //check whether any blacklisted signature is present
+        for(int i=0;i<signatureList.size();i++){
+            if(blacklistUrls.contains(signatureList.get(i).getUrl())){
+                isBlackListed = true;
+                break;
+            }
+        }
+
+        //create arraylist of signature IDs that are whitelisted
+        ArrayList<String> whitelistedSignatureIDs = new ArrayList<>();
+        if(document.getExtractor().getSignature().getUrl().equals(signatureList.get(0).getUrl())){
+            if(whitelistUrls.contains(signatureList.get(0).getUrl())){
+                whitelistedSignatureIDs.add(document.getExtractor().getId());
+            }
+            for(int i=1;i<signatureList.size();i++){
+                if(whitelistUrls.contains(signatureList.get(i).getUrl())){
+                    whitelistedSignatureIDs.add(document.getValidators().get(i).getId());
+                }
+            }
+        }else{
+            for(int i=0;i<signatureList.size();i++){
+                if(whitelistUrls.contains(signatureList.get(i).getUrl())){
+                    whitelistedSignatureIDs.add(document.getValidators().get(i).getId());
+                }
+            }
+        }
+
+
+        if(whitelistedSignatureIDs.size()>0){
+            isWhiteListed = true;
+        }
+
+//        boolean isBlackListed = !Collections.disjoint(blacklistUrls, urlList);
+//        boolean isWhiteListed = !Collections.disjoint(whitelistUrls, urlList);
 
         if (isBlackListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_BLACKLISTED));
@@ -116,7 +151,7 @@ public class Router {
         if (!docConfig.isContentSignable() && !isWhiteListed)
             return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_NOTHING_SIGNABLE));
 
-        urlList.retainAll(whitelistUrls);
+//        urlList.retainAll(whitelistUrls);
 
         try {
             boolean isValidExtractor = extractorVerifier.verifyExtractorSignature(json, tmpFilePath);
@@ -131,7 +166,7 @@ public class Router {
                     feature.getPassword(configFilePath, pvtCertFilePath, pvtCertPasswordType),
                     feature.getPublicCertificateURL(configFilePath, pubCertFilePath, pubCertType));
 
-            Document validatedDocument = Parser.parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), urlList));
+            Document validatedDocument = Parser.parseDocumentJson(jsonSigner.signJson(json, docConfig.isContentSignable(), whitelistedSignatureIDs));
 
             Path jsonPath = feature.createTempFile(new Gson().toJson(validatedDocument).getBytes(), tmpFilePath, UUID.randomUUID().toString() + Constant.FileExtenstion.JSON).toPath();
             String jsonUrl = feature.parseLocalFilePathAsOnlineUrl(jsonPath.toString(), configFilePath);
