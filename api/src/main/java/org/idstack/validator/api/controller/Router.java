@@ -8,6 +8,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
 import org.idstack.feature.FeatureImpl;
 import org.idstack.feature.Parser;
+import org.idstack.feature.configuration.BasicConfig;
 import org.idstack.feature.configuration.DocConfig;
 import org.idstack.feature.configuration.DocumentConfig;
 import org.idstack.feature.configuration.list.BlackList;
@@ -127,8 +128,9 @@ public class Router {
 
             // This will send an email to owner with files
             if (requestId.isPresent()) {
-                String message = feature.populateEmailBody(requestId.get(), validatedDocument.getMetaData().getDocumentType().toUpperCase(), jsonUrl);
-                feature.sendEmail(feature.getEmailByRequestId(storeFilePath, requestId.get()), "IDStack Document Extraction", message);
+                BasicConfig basicConfig = (BasicConfig) feature.getConfiguration(configFilePath, Constant.Configuration.BASIC_CONFIG_FILE_NAME);
+                String body = feature.populateEmailBody(requestId.get(), validatedDocument.getMetaData().getDocumentType().toUpperCase(), jsonUrl, basicConfig);
+                feature.sendEmail(feature.getEmailByRequestId(storeFilePath, requestId.get()), "VALIDATOR - IDStack Document Validation", body);
 
                 // This will add the request id into request configuration list
                 feature.saveRequestConfiguration(configFilePath, requestId.get());
