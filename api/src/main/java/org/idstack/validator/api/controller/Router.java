@@ -100,19 +100,20 @@ public class Router {
         BlackList blackList = (BlackList) feature.getConfiguration(configFilePath, Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME);
 
         ArrayList<String> whitelistUrls = new ArrayList<>();
-        for(int i=0; i<whiteList.getWhiteList().size();i++){
+        for (int i = 0; i < whiteList.getWhiteList().size(); i++) {
             whitelistUrls.add(whiteList.getWhiteList().get(i).getUrl());
         }
         ArrayList<String> blacklistUrls = new ArrayList<>();
-        for(int i=0; i<blackList.getBlackList().size();i++){
+        for (int i = 0; i < blackList.getBlackList().size(); i++) {
             blacklistUrls.add(blackList.getBlackList().get(i).getUrl());
         }
 
         boolean isBlackListed = false;
         boolean isWhiteListed = false;
+
         //check whether any blacklisted signature is present
-        for(int i=0;i<signatureList.size();i++){
-            if(blacklistUrls.contains(signatureList.get(i).getUrl())){
+        for (int i = 0; i < signatureList.size(); i++) {
+            if (blacklistUrls.contains(signatureList.get(i).getUrl())) {
                 isBlackListed = true;
                 break;
             }
@@ -120,25 +121,24 @@ public class Router {
 
         //create arraylist of signature IDs that are whitelisted
         ArrayList<String> whitelistedSignatureIDs = new ArrayList<>();
-        if(document.getExtractor().getSignature().getUrl().equals(signatureList.get(0).getUrl())){
-            if(whitelistUrls.contains(signatureList.get(0).getUrl())){
+        if (document.getExtractor().getSignature().getUrl().equals(signatureList.get(0).getUrl())) {
+            if (whitelistUrls.contains(signatureList.get(0).getUrl())) {
                 whitelistedSignatureIDs.add(document.getExtractor().getId());
             }
-            for(int i=1;i<signatureList.size();i++){
-                if(whitelistUrls.contains(signatureList.get(i).getUrl())){
+            for (int i = 1; i < signatureList.size(); i++) {
+                if (whitelistUrls.contains(signatureList.get(i).getUrl())) {
                     whitelistedSignatureIDs.add(document.getValidators().get(i).getId());
                 }
             }
-        }else{
-            for(int i=0;i<signatureList.size();i++){
-                if(whitelistUrls.contains(signatureList.get(i).getUrl())){
+        } else {
+            for (int i = 0; i < signatureList.size(); i++) {
+                if (whitelistUrls.contains(signatureList.get(i).getUrl())) {
                     whitelistedSignatureIDs.add(document.getValidators().get(i).getId());
                 }
             }
         }
 
-
-        if(whitelistedSignatureIDs.size()>0){
+        if (whitelistedSignatureIDs.size() > 0) {
             isWhiteListed = true;
         }
 
