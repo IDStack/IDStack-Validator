@@ -98,6 +98,8 @@ public class APIHandler {
                 return feature.saveWhiteListConfiguration(configFilePath, json, tmpFilePath);
             case Constant.Configuration.BLACKLIST_CONFIG:
                 return feature.saveBlackListConfiguration(configFilePath, json, tmpFilePath);
+            case Constant.Configuration.AWS_CONFIG:
+                return feature.saveAWSConfiguration(configFilePath, json);
             default:
                 return new Gson().toJson(Collections.singletonMap(Constant.Status.STATUS, Constant.Status.ERROR_PARAMETER));
         }

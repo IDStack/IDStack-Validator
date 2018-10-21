@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.idstack.feature.Constant;
+import org.idstack.feature.Constant.Configuration;
 import org.idstack.feature.FeatureImpl;
 import org.idstack.feature.Parser;
 import org.idstack.feature.configuration.BasicConfig;
@@ -27,7 +28,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Chanaka Lakmal
@@ -208,6 +213,8 @@ public class Router {
                 return Constant.Configuration.WHITELIST_CONFIG_FILE_NAME;
             case Constant.Configuration.BLACKLIST_CONFIG:
                 return Constant.Configuration.BLACKLIST_CONFIG_FILE_NAME;
+            case Configuration.AWS_CONFIG:
+                return Configuration.AWS_CONFIG_FILE_NAME;
             default:
                 return null;
         }
